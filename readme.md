@@ -21,5 +21,3 @@ Why "Loam"? Loam is a combination of "Logseq" + "Foam". Also, loam in the real w
 - [ ] support TODO / DONE
 - [ ] fix page embeds (just make it use Logseq formatting; the functionality is already there)
   - [ ] also support block embeds?
-
-###
