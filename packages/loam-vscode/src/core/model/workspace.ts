@@ -1,0 +1,257 @@
+import { Resource, ResourceLink } from './note';
+import { URI } from './uri';
+import { isAbsolute, getExtension, changeExtension } from '../utils/path';
+import { isSome } from '../utils';
+import { Emitter } from '../common/event';
+import { ResourceProvider } from './provider';
+import { IDisposable } from '../common/lifecycle';
+import { IDataStore } from '../services/datastore';
+
+export class LoamWorkspace implements IDisposable {
+  private onDidAddEmitter = new Emitter<Resource>();
+  private onDidUpdateEmitter = new Emitter<{ old: Resource; new: Resource }>();
+  private onDidDeleteEmitter = new Emitter<Resource>();
+  onDidAdd = this.onDidAddEmitter.event;
+  onDidUpdate = this.onDidUpdateEmitter.event;
+  onDidDelete = this.onDidDeleteEmitter.event;
+
+  private providers: ResourceProvider[] = [];
+
+  /**
+   * Resources by path
+   */
+  private _resources: Map<string, Resource> = new Map();
+
+  /**
+   * @param defaultExtension: The default extension for notes in this workspace (e.g. `.md`)
+   */
+  constructor(public defaultExtension: string = '.md') {}
+
+  registerProvider(provider: ResourceProvider) {
+    this.providers.push(provider);
+  }
+
+  set(resource: Resource) {
+    const old = this.find(resource.uri);
+    this._resources.set(normalize(resource.uri.path), resource);
+    isSome(old)
+      ? this.onDidUpdateEmitter.fire({ old: old, new: resource })
+      : this.onDidAddEmitter.fire(resource);
+    return this;
+  }
+
+  delete(uri: URI) {
+    const deleted = this._resources.get(normalize(uri.path));
+    this._resources.delete(normalize(uri.path));
+
+    isSome(deleted) && this.onDidDeleteEmitter.fire(deleted);
+    return deleted ?? null;
+  }
+
+  public exists(uri: URI): boolean {
+    return isSome(this.find(uri));
+  }
+
+  public list(): Resource[] {
+    return Array.from(this._resources.values());
+  }
+
+  public resources(): IterableIterator<Resource> {
+    return this._resources.values();
+  }
+
+  public get(uri: URI): Resource {
+    const note = this.find(uri);
+    if (isSome(note)) {
+      return note;
+    } else {
+      throw new Error('Resource not found: ' + uri.path);
+    }
+  }
+
+  public listByIdentifier(identifier: string): Resource[] {
+    const needle = normalize('/' + identifier);
+    const mdNeedle =
+      getExtension(needle) !== this.defaultExtension
+        ? needle + this.defaultExtension
+        : undefined;
+    const resources: Resource[] = [];
+    for (const key of this._resources.keys()) {
+      if (key.endsWith(mdNeedle) || key.endsWith(needle)) {
+        resources.push(this._resources.get(normalize(key)));
+      }
+    }
+    return resources.sort(Resource.sortByPath);
+  }
+
+  /**
+   * Returns the minimal identifier for the given resource
+   *
+   * @param forResource the resource to compute the identifier for
+   */
+  public getIdentifier(forResource: URI, exclude?: URI[]): string {
+    const amongst = [];
+    const basename = forResource.getBasename();
+    for (const res of this._resources.values()) {
+      // skip elements that cannot possibly match
+      if (!res.uri.path.endsWith(basename)) {
+        continue;
+      }
+      // skip self
+      if (res.uri.isEqual(forResource)) {
+        continue;
+      }
+      // skip exclude list
+      if (exclude && exclude.find(ex => ex.isEqual(res.uri))) {
+        continue;
+      }
+      amongst.push(res.uri);
+    }
+
+    let identifier = LoamWorkspace.getShortestIdentifier(
+      forResource.path,
+      amongst.map(uri => uri.path)
+    );
+    identifier = changeExtension(identifier, this.defaultExtension, '');
+    if (forResource.fragment) {
+      identifier += `#${forResource.fragment}`;
+    }
+    return identifier;
+  }
+
+  public find(reference: URI | string, baseUri?: URI): Resource | null {
+    if (reference instanceof URI) {
+      return this._resources.get(normalize((reference as URI).path)) ?? null;
+    }
+    let resource: Resource | null = null;
+    const [path, fragment] = (reference as string).split('#');
+    if (LoamWorkspace.isIdentifier(path)) {
+      resource = this.listByIdentifier(path)[0];
+    } else {
+      const candidates = [path, path + this.defaultExtension];
+      for (const candidate of candidates) {
+        const searchKey = isAbsolute(candidate)
+          ? candidate
+          : isSome(baseUri)
+          ? baseUri.resolve(candidate).path
+          : null;
+        resource = this._resources.get(normalize(searchKey));
+        if (resource) {
+          break;
+        }
+      }
+    }
+    if (resource && fragment) {
+      resource = { ...resource, uri: resource.uri.withFragment(fragment) };
+    }
+    return resource ?? null;
+  }
+
+  public resolveLink(resource: Resource, link: ResourceLink): URI {
+    for (const provider of this.providers) {
+      if (provider.supports(resource.uri)) {
+        return provider.resolveLink(this, resource, link);
+      }
+    }
+    throw new Error(
+      `Couldn't find provider for resource "${resource.uri.toString()}"`
+    );
+  }
+
+  public fetch(uri: URI): Promise<Resource | null> {
+    for (const provider of this.providers) {
+      if (provider.supports(uri)) {
+        return provider.fetch(uri);
+      }
+    }
+    return Promise.resolve(null);
+  }
+
+  /**
+   * Takes a resource URI, and adds it to the workspace as a resource.
+   * If the URI is not supported by any provider or is not found, it will not
+   * add anything to the workspace, and return null.
+   *
+   * @param uri the URI where the resource is located
+   * @returns A promise to the Resource, or null if none was found
+   */
+  public async fetchAndSet(uri: URI): Promise<Resource | null> {
+    const resource = await this.fetch(uri);
+    resource && this.set(resource);
+    return resource;
+  }
+
+  public readAsMarkdown(uri: URI): Promise<string | null> {
+    for (const provider of this.providers) {
+      if (provider.supports(uri)) {
+        return provider.readAsMarkdown(uri);
+      }
+    }
+    return Promise.resolve(null);
+  }
+
+  public dispose(): void {
+    this.onDidAddEmitter.dispose();
+    this.onDidDeleteEmitter.dispose();
+    this.onDidUpdateEmitter.dispose();
+  }
+
+  static isIdentifier(path: string): boolean {
+    return !(
+      path.startsWith('/') ||
+      path.startsWith('./') ||
+      path.startsWith('../')
+    );
+  }
+
+  /**
+   * Returns the minimal identifier for the given string amongst others
+   *
+   * @param forPath the value to compute the identifier for
+   * @param amongst the set of strings within which to find the identifier
+   */
+  static getShortestIdentifier(forPath: string, amongst: string[]): string {
+    const needleTokens = forPath.split('/').reverse();
+    const haystack = amongst
+      .filter(value => value !== forPath)
+      .map(value => value.split('/').reverse());
+
+    let tokenIndex = 0;
+    let res = needleTokens;
+    while (tokenIndex < needleTokens.length) {
+      for (let j = haystack.length - 1; j >= 0; j--) {
+        if (
+          haystack[j].length < tokenIndex ||
+          needleTokens[tokenIndex] !== haystack[j][tokenIndex]
+        ) {
+          haystack.splice(j, 1);
+        }
+      }
+      if (haystack.length === 0) {
+        res = needleTokens.splice(0, tokenIndex + 1);
+        break;
+      }
+      tokenIndex++;
+    }
+    const identifier = res
+      .filter(token => token.trim() !== '')
+      .reverse()
+      .join('/');
+
+    return identifier;
+  }
+
+  static async fromProviders(
+    providers: ResourceProvider[],
+    dataStore: IDataStore,
+    defaultExtension: string = '.md'
+  ): Promise<LoamWorkspace> {
+    const workspace = new LoamWorkspace(defaultExtension);
+    await Promise.all(providers.map(p => workspace.registerProvider(p)));
+    const files = await dataStore.list();
+    await Promise.all(files.map(f => workspace.fetchAndSet(f)));
+    return workspace;
+  }
+}
+
+const normalize = (v: string) => v.toLocaleLowerCase();
