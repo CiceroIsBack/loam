@@ -484,7 +484,8 @@
             "**/.vscode/**/*",
             "**/_layouts/**/*",
             "**/_site/**/*",
-            "**/node_modules/**/*"
+            "**/node_modules/**/*",
+            "**/logseq/**/*"
           ],
           "description": "Specifies the list of globs that will be ignored by Loam (e.g. they will not be considered when creating the graph). To ignore the all the content of a given folder, use `<folderName>/**/*`"
         },
@@ -553,7 +554,7 @@
         },
         "loam.openDailyNote.onStartup": {
           "type": "boolean",
-          "default": false
+          "default": true
         },
         "loam.openDailyNote.fileExtension": {
           "type": "string",
@@ -561,37 +562,33 @@
         },
         "loam.openDailyNote.filenameFormat": {
           "type": "string",
-          "default": "isoDate",
+          "default": "yyyy_mm_dd",
           "markdownDescription": "Specifies how the daily note filename is formatted. See the [dateformat docs](https://www.npmjs.com/package/dateformat) for valid formats"
-        },
-        "loam.openDailyNote.titleFormat": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null,
-          "markdownDescription": "Specifies how the daily note title is formatted. Will default to the filename format if set to null. See the [dateformat docs](https://www.npmjs.com/package/dateformat) for valid formats"
         },
         "loam.openDailyNote.directory": {
           "type": [
             "string",
             "null"
           ],
-          "default": null,
+          "default": "journals",
           "description": "The directory into which daily notes should be created. Defaults to the workspace root."
         },
         "loam.orphans.exclude": {
           "type": [
             "array"
           ],
-          "default": [],
+          "default": [
+            "**logseq/**/*"
+          ],
           "markdownDescription": "Specifies the list of glob patterns that will be excluded from the orphans report. To ignore the all the content of a given folder, use `**<folderName>/**/*`"
         },
         "loam.placeholders.exclude": {
           "type": [
             "array"
           ],
-          "default": [],
+          "default": [
+            "**logseq/**/*"
+          ],
           "markdownDescription": "Specifies the list of glob patterns that will be excluded from the placeholders report. To ignore the all the content of a given folder, use `**<folderName>/**/*`"
         },
         "loam.dateSnippets.afterCompletion": {
@@ -634,6 +631,9 @@
           "type": "object",
           "description": "Custom graph styling settings. An example is present in the documentation.",
           "default": {}
+        },
+        "files.exclude": {
+          "logseq/*": true
         }
       }
     },
