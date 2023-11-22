@@ -1,0 +1,723 @@
+{
+  "name": "loam-vscode",
+  "displayName": "Loam",
+  "description": "Logseq + Loam",
+  "private": true,
+  "repository": {
+    "url": "https://github.com/CiceroIsBack/loam",
+    "type": "git"
+  },
+  "homepage": "https://github.com/CiceroIsBack/loam",
+  "version": "0.25.4",
+  "license": "MIT",
+  "publisher": "loam",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "icon": "assets/icon/FOAM_ICON_256.png",
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "workspaceContains:.vscode/loam.json"
+  ],
+  "main": "./out/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "No expressions are allowed in filters."
+    }
+  },
+  "contributes": {
+    "markdown.markdownItPlugins": true,
+    "markdown.previewStyles": [
+      "./static/preview/style.css"
+    ],
+    "grammars": [
+      {
+        "path": "./syntaxes/injection.json",
+        "scopeName": "loam.wikilink.injection",
+        "injectTo": [
+          "text.html.markdown"
+        ]
+      }
+    ],
+    "colors": [
+      {
+        "id": "loam.placeholder",
+        "description": "Color of loam placeholders.",
+        "defaults": {
+          "dark": "editorWarning.foreground",
+          "light": "editorWarning.foreground",
+          "highContrast": "editorWarning.foreground"
+        }
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "loam-vscode.connections",
+          "name": "Connections",
+          "icon": "$(references)",
+          "contextualTitle": "Loam"
+        },
+        {
+          "id": "loam-vscode.tags-explorer",
+          "name": "Tag Explorer",
+          "icon": "$(tag)",
+          "contextualTitle": "Loam"
+        },
+        {
+          "id": "loam-vscode.notes-explorer",
+          "name": "Notes",
+          "icon": "$(notebook)",
+          "contextualTitle": "Loam"
+        },
+        {
+          "id": "loam-vscode.orphans",
+          "name": "Orphans",
+          "icon": "$(debug-gripper)",
+          "contextualTitle": "Loam"
+        },
+        {
+          "id": "loam-vscode.placeholders",
+          "name": "Placeholders",
+          "icon": "$(debug-disconnect)",
+          "contextualTitle": "Loam"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "loam-vscode.tags-explorer",
+        "contents": "No tags found. Notes that contain tags will show up here. You may add tags to a note with a hashtag (#tag) or by adding a tag list to the front matter (tags: tag1, tag2)."
+      },
+      {
+        "view": "loam-vscode.connections",
+        "contents": "Nothing found for the selected resource and the current filter."
+      },
+      {
+        "view": "loam-vscode.orphans",
+        "contents": "No orphans found. Notes that have no backlinks nor links will show up here."
+      },
+      {
+        "view": "loam-vscode.placeholders",
+        "contents": "No placeholders found for selected resource or workspace."
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "loam-vscode.views.connections.show:backlinks",
+          "when": "view == loam-vscode.connections && loam-vscode.views.connections.show == 'all links'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.connections.show:forward-links",
+          "when": "view == loam-vscode.connections && loam-vscode.views.connections.show == 'backlinks'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.connections.show:all-links",
+          "when": "view == loam-vscode.connections && loam-vscode.views.connections.show == 'forward links'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.orphans.group-by:folder",
+          "when": "view == loam-vscode.orphans && loam-vscode.views.orphans.group-by == 'off'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.orphans.group-by:off",
+          "when": "view == loam-vscode.orphans && loam-vscode.views.orphans.group-by == 'folder'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.show:for-current-file",
+          "when": "view == loam-vscode.tags-explorer && loam-vscode.views.tags-explorer.show == 'all'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.show:all",
+          "when": "view == loam-vscode.tags-explorer && loam-vscode.views.tags-explorer.show == 'for-current-file'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.group-by:folder",
+          "when": "view == loam-vscode.tags-explorer && loam-vscode.views.tags-explorer.group-by == 'off'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.group-by:off",
+          "when": "view == loam-vscode.tags-explorer && loam-vscode.views.tags-explorer.group-by == 'folder'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.expand-all",
+          "when": "view == loam-vscode.tags-explorer",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.show:for-current-file",
+          "when": "view == loam-vscode.placeholders && loam-vscode.views.placeholders.show == 'all'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.show:all",
+          "when": "view == loam-vscode.placeholders && loam-vscode.views.placeholders.show == 'for-current-file'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.group-by:folder",
+          "when": "view == loam-vscode.placeholders && loam-vscode.views.placeholders.group-by == 'off'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.group-by:off",
+          "when": "view == loam-vscode.placeholders && loam-vscode.views.placeholders.group-by == 'folder'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.expand-all",
+          "when": "view == loam-vscode.placeholders",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.notes-explorer.show:notes",
+          "when": "view == loam-vscode.notes-explorer && loam-vscode.views.notes-explorer.show == 'all'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.notes-explorer.show:all",
+          "when": "view == loam-vscode.notes-explorer && loam-vscode.views.notes-explorer.show == 'notes-only'",
+          "group": "navigation"
+        },
+        {
+          "command": "loam-vscode.views.notes-explorer.expand-all",
+          "when": "view == loam-vscode.notes-explorer",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "loam-vscode.create-note-from-default-template",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.update-graph",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.connections.show:all-links",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.connections.show:backlinks",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.connections.show:forward-links",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.orphans.group-by:folder",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.orphans.group-by:off",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.show:for-current-file",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.show:all",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.group-by:folder",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.group-by:off",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.tags-explorer.expand-all",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.show:for-current-file",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.show:all",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.group-by:folder",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.group-by:off",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.placeholders.expand-all",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.notes-explorer.show:all",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.notes-explorer.show:notes",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.views.notes-explorer.expand-all",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.open-resource",
+          "when": "false"
+        },
+        {
+          "command": "loam-vscode.completion-move-cursor",
+          "when": "false"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "loam-vscode.create-note",
+        "title": "Loam: Create New Note"
+      },
+      {
+        "command": "loam-vscode.clear-cache",
+        "title": "Loam: Clear Cache"
+      },
+      {
+        "command": "loam-vscode.update-graph",
+        "title": "Loam: Update graph"
+      },
+      {
+        "command": "loam-vscode.set-log-level",
+        "title": "Loam: Set log level"
+      },
+      {
+        "command": "loam-vscode.show-graph",
+        "title": "Loam: Show graph"
+      },
+      {
+        "command": "loam-vscode.update-wikilink-definitions",
+        "title": "Loam: Update wikilink definitions"
+      },
+      {
+        "command": "loam-vscode.open-daily-note",
+        "title": "Loam: Open Today's Note"
+      },
+      {
+        "command": "loam-vscode.open-daily-note-for-date",
+        "title": "Loam: Open Daily Note"
+      },
+      {
+        "command": "loam-vscode.open-random-note",
+        "title": "Loam: Open Random Note"
+      },
+      {
+        "command": "loam-vscode.janitor",
+        "title": "Loam: Run Janitor (Experimental)"
+      },
+      {
+        "command": "loam-vscode.copy-without-brackets",
+        "title": "Loam: Copy To Clipboard Without Brackets"
+      },
+      {
+        "command": "loam-vscode.create-note-from-template",
+        "title": "Loam: Create New Note From Template"
+      },
+      {
+        "command": "loam-vscode.create-note-from-default-template",
+        "title": "Loam: Create New Note"
+      },
+      {
+        "command": "loam-vscode.open-resource",
+        "title": "Loam: Open Resource"
+      },
+      {
+        "command": "loam-vscode.views.orphans.group-by:folder",
+        "title": "Group By Folder",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "loam-vscode.views.connections.show:backlinks",
+        "title": "Show Backlinks",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "loam-vscode.views.connections.show:forward-links",
+        "title": "Show Links",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "loam-vscode.views.connections.show:all-links",
+        "title": "Show All",
+        "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "loam-vscode.views.orphans.group-by:off",
+        "title": "Flat list",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "loam-vscode.views.tags-explorer.show:for-current-file",
+        "title": "Show tags in current file",
+        "icon": "$(file)"
+      },
+      {
+        "command": "loam-vscode.views.tags-explorer.show:all",
+        "title": "Show tags in workspace",
+        "icon": "$(files)"
+      },
+      {
+        "command": "loam-vscode.views.tags-explorer.group-by:folder",
+        "title": "Group By Folder",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "loam-vscode.views.tags-explorer.group-by:off",
+        "title": "Flat list",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "loam-vscode.views.tags-explorer.expand-all",
+        "title": "Expand all",
+        "icon": "$(expand-all)"
+      },
+      {
+        "command": "loam-vscode.views.placeholders.show:for-current-file",
+        "title": "Show placeholders in current file",
+        "icon": "$(file)"
+      },
+      {
+        "command": "loam-vscode.views.placeholders.show:all",
+        "title": "Show placeholders in workspace",
+        "icon": "$(files)"
+      },
+      {
+        "command": "loam-vscode.views.placeholders.group-by:folder",
+        "title": "Group By Folder",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "loam-vscode.views.placeholders.group-by:off",
+        "title": "Flat list",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "loam-vscode.views.placeholders.expand-all",
+        "title": "Expand all",
+        "icon": "$(expand-all)"
+      },
+      {
+        "command": "loam-vscode.views.notes-explorer.show:all",
+        "title": "Show all resources",
+        "icon": "$(files)"
+      },
+      {
+        "command": "loam-vscode.views.notes-explorer.expand-all",
+        "title": "Expand all",
+        "icon": "$(expand-all)"
+      },
+      {
+        "command": "loam-vscode.views.notes-explorer.show:notes",
+        "title": "Show only notes",
+        "icon": "$(file)"
+      },
+      {
+        "command": "loam-vscode.create-new-template",
+        "title": "Loam: Create New Template"
+      },
+      {
+        "command": "loam-vscode.completion-move-cursor",
+        "title": "Loam: Move cursor after completion"
+      }
+    ],
+    "configuration": {
+      "title": "Loam",
+      "properties": {
+        "loam.completion.label": {
+          "type": "string",
+          "default": "path",
+          "description": "Describes what note property to use as a label for completion items",
+          "enum": [
+            "path",
+            "title",
+            "identifier"
+          ],
+          "enumDescriptions": [
+            "Use the path of the note",
+            "Use the title of the note",
+            "Use the identifier of the note"
+          ]
+        },
+        "loam.completion.useAlias": {
+          "type": "string",
+          "default": "never",
+          "description": "Specifies in which cases to use an alias when creating a wikilink",
+          "enum": [
+            "never",
+            "whenPathDiffersFromTitle"
+          ],
+          "enumDescriptions": [
+            "Never use aliases in completion items",
+            "Use alias if resource path is different from title"
+          ]
+        },
+        "loam.files.ignore": {
+          "type": [
+            "array"
+          ],
+          "default": [
+            "**/.vscode/**/*",
+            "**/_layouts/**/*",
+            "**/_site/**/*",
+            "**/node_modules/**/*"
+          ],
+          "description": "Specifies the list of globs that will be ignored by Loam (e.g. they will not be considered when creating the graph). To ignore the all the content of a given folder, use `<folderName>/**/*`"
+        },
+        "loam.files.attachmentExtensions": {
+          "type": "string",
+          "default": "pdf mp3 webm wav m4a mp4 avi mov rtf txt doc docx pages xls xlsx numbers ppt pptm pptx",
+          "description": "Space separated list of file extensions that will be considered attachments"
+        },
+        "loam.files.notesExtensions": {
+          "type": "string",
+          "default": "",
+          "description": "Space separated list of extra file extensions that will be considered text notes (e.g. 'mdx txt markdown')"
+        },
+        "loam.files.defaultNoteExtension": {
+          "type": "string",
+          "default": "md",
+          "description": "The default extension for new notes"
+        },
+        "loam.files.newNotePath": {
+          "type": "string",
+          "default": "root",
+          "description": "Specifies where to create a new note. It is overruled by the template or command arguments",
+          "enum": [
+            "root",
+            "currentDir"
+          ],
+          "enumDescriptions": [
+            "Use the root of the workspace",
+            "Use the directory of the file in the current editor"
+          ]
+        },
+        "loam.logging.level": {
+          "type": "string",
+          "default": "info",
+          "enum": [
+            "off",
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ]
+        },
+        "loam.edit.linkReferenceDefinitions": {
+          "type": "string",
+          "default": "off",
+          "enum": [
+            "withExtensions",
+            "withoutExtensions",
+            "off"
+          ],
+          "enumDescriptions": [
+            "Include extension in wikilinks paths",
+            "Remove extension in wikilink paths",
+            "Disable wikilink definitions generation"
+          ]
+        },
+        "loam.links.sync.enable": {
+          "description": "Enable synching links when moving/renaming notes",
+          "type": "boolean",
+          "default": true
+        },
+        "loam.links.hover.enable": {
+          "description": "Enable displaying note content on hover links",
+          "type": "boolean",
+          "default": true
+        },
+        "loam.openDailyNote.onStartup": {
+          "type": "boolean",
+          "default": false
+        },
+        "loam.openDailyNote.fileExtension": {
+          "type": "string",
+          "default": "md"
+        },
+        "loam.openDailyNote.filenameFormat": {
+          "type": "string",
+          "default": "isoDate",
+          "markdownDescription": "Specifies how the daily note filename is formatted. See the [dateformat docs](https://www.npmjs.com/package/dateformat) for valid formats"
+        },
+        "loam.openDailyNote.titleFormat": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "markdownDescription": "Specifies how the daily note title is formatted. Will default to the filename format if set to null. See the [dateformat docs](https://www.npmjs.com/package/dateformat) for valid formats"
+        },
+        "loam.openDailyNote.directory": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "The directory into which daily notes should be created. Defaults to the workspace root."
+        },
+        "loam.orphans.exclude": {
+          "type": [
+            "array"
+          ],
+          "default": [],
+          "markdownDescription": "Specifies the list of glob patterns that will be excluded from the orphans report. To ignore the all the content of a given folder, use `**<folderName>/**/*`"
+        },
+        "loam.placeholders.exclude": {
+          "type": [
+            "array"
+          ],
+          "default": [],
+          "markdownDescription": "Specifies the list of glob patterns that will be excluded from the placeholders report. To ignore the all the content of a given folder, use `**<folderName>/**/*`"
+        },
+        "loam.dateSnippets.afterCompletion": {
+          "type": "string",
+          "default": "createNote",
+          "enum": [
+            "noop",
+            "createNote",
+            "navigateToNote"
+          ],
+          "enumDescriptions": [
+            "Nothing happens after selecting the completion item",
+            "The note is created following your daily note settings if it does not exist, but no navigation takes place",
+            "Navigates to the note, creating it following your daily note settings if it does not exist"
+          ],
+          "description": "Whether or not to navigate to the target daily note when a daily note snippet is selected."
+        },
+        "loam.preview.embedNoteType": {
+          "type": "string",
+          "default": "full-card",
+          "enum": [
+            "full-inline",
+            "full-card",
+            "content-inline",
+            "content-card"
+          ],
+          "enumDescriptions": [
+            "Include the section with title and style inline",
+            "Include the section with title and style it within a container",
+            "Include the section without title and style inline",
+            "Include the section without title and style it within a container"
+          ]
+        },
+        "loam.graph.titleMaxLength": {
+          "type": "number",
+          "default": 24,
+          "description": "The maximum title length before being abbreviated. Set to 0 or less to disable."
+        },
+        "loam.graph.style": {
+          "type": "object",
+          "description": "Custom graph styling settings. An example is present in the documentation.",
+          "default": {}
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "loam-vscode.open-daily-note",
+        "key": "alt+d"
+      },
+      {
+        "command": "loam-vscode.open-daily-note-for-date",
+        "key": "alt+h"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p ./",
+    "pretest": "yarn build",
+    "test": "node ./out/test/run-tests.js",
+    "pretest:unit": "yarn build",
+    "test:unit": "node ./out/test/run-tests.js --unit",
+    "pretest:e2e": "yarn build",
+    "test:e2e": "node ./out/test/run-tests.js --e2e",
+    "lint": "dts lint src",
+    "clean": "rimraf out",
+    "watch": "tsc --build ./tsconfig.json --watch",
+    "vscode:start-debugging": "yarn clean && yarn watch",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "vscode:prepublish": "yarn run esbuild-base -- --minify",
+    "package-extension": "npx vsce package --yarn",
+    "install-extension": "code --install-extension ./loam-vscode-$npm_package_version.vsix",
+    "publish-extension-openvsx": "npx ovsx publish loam-vscode-$npm_package_version.vsix -p $OPENVSX_TOKEN",
+    "publish-extension-vscode": "npx vsce publish --packagePath loam-vscode-$npm_package_version.vsix",
+    "publish-extension": "yarn publish-extension-vscode && yarn publish-extension-openvsx"
+  },
+  "devDependencies": {
+    "@types/dateformat": "^3.0.1",
+    "@types/jest": "^29.5.3",
+    "@types/lodash": "^4.14.157",
+    "@types/markdown-it": "^12.0.1",
+    "@types/micromatch": "^4.0.1",
+    "@types/node": "^13.11.0",
+    "@types/picomatch": "^2.2.1",
+    "@types/remove-markdown": "^0.1.1",
+    "@types/vscode": "^1.70.0",
+    "@typescript-eslint/eslint-plugin": "^5.51.0",
+    "@typescript-eslint/parser": "^5.51.0",
+    "dts-cli": "^1.6.3",
+    "esbuild": "^0.17.7",
+    "eslint": "^8.33.0",
+    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-jest": "^27.2.1",
+    "husky": "^4.2.5",
+    "jest": "^29.6.2",
+    "jest-extended": "^3.2.3",
+    "markdown-it": "^12.0.4",
+    "micromatch": "^4.0.2",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^29.1.1",
+    "tslib": "^2.0.0",
+    "typescript": "^4.9.5",
+    "vscode-test": "^1.3.0",
+    "wait-for-expect": "^3.0.2"
+  },
+  "dependencies": {
+    "dateformat": "^3.0.3",
+    "detect-newline": "^3.1.0",
+    "github-slugger": "^1.4.0",
+    "gray-matter": "^4.0.2",
+    "lodash": "^4.17.21",
+    "lru-cache": "^7.14.1",
+    "markdown-it-regex": "^0.2.0",
+    "remark-frontmatter": "^2.0.0",
+    "remark-parse": "^8.0.2",
+    "remark-wiki-link": "^0.0.4",
+    "title-case": "^3.0.2",
+    "unified": "^9.0.0",
+    "unist-util-visit": "^2.0.2",
+    "yaml": "^2.2.2"
+  },
+  "__metadata": {
+    "id": "b85c6625-454b-4b61-8a22-c42f3d0f2e1e",
+    "publisherDisplayName": "Loam",
+    "publisherId": "34339645-24f0-4619-9917-12157fd92446",
+    "isPreReleaseVersion": false
+  }
+}

@@ -12,8 +12,8 @@
   },
   // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
   "typescript.tsc.autoDetect": "off",
-  "foam.edit.linkReferenceDefinitions": "withExtensions",
-  "foam.files.ignore": [
+  "loam.edit.linkReferenceDefinitions": "withExtensions",
+  "loam.files.ignore": [
     "**/.vscode/**/*",
     "**/_layouts/**/*",
     "**/_site/**/*",
@@ -25,7 +25,7 @@
   "editor.formatOnSaveMode": "file",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "jest.autoRun": "off",
-  "jest.rootPath": "packages/foam-vscode",
+  "jest.rootPath": "packages/loam-vscode",
   "jest.jestCommandLine": "yarn jest",
   "gitdoc.enabled": false,
   "search.mode": "reuseEditor",

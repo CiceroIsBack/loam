@@ -1,8 +1,8 @@
 {
-  "name": "foam",
+  "name": "loam",
   "version": "0.2.0",
-  "description": "Foam",
-  "repository": "git@github.com:foambubble/foam.git",
+  "description": "Loam",
+  "repository": "git@github.com:CiceroIsBack/loam.git",
   "license": "MIT",
   "private": "true",
   "workspaces": [
@@ -10,13 +10,13 @@
   ],
   "scripts": {
     "version-extension": "lerna version",
-    "package-extension": "yarn workspace foam-vscode package-extension",
-    "install-extension": "yarn workspace foam-vscode install-extension",
-    "publish-extension": "yarn workspace foam-vscode publish-extension",
+    "package-extension": "yarn workspace loam-vscode package-extension",
+    "install-extension": "yarn workspace loam-vscode install-extension",
+    "publish-extension": "yarn workspace loam-vscode publish-extension",
     "reset": "yarn && yarn clean && yarn build",
     "clean": "lerna run clean",
     "build": "lerna run build",
-    "test": "yarn workspace foam-vscode test --stream",
+    "test": "yarn workspace loam-vscode test --stream",
     "lint": "lerna run lint",
     "watch": "lerna run watch --concurrency 20 --stream"
   },

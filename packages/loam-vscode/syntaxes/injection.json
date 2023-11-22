@@ -1,0 +1,21 @@
+{
+  "scopeName": "loam.wikilink.injection",
+  "injectionSelector": "L:meta.paragraph.markdown, L:markup.heading.markdown, L:markup.list.unnumbered.markdown",
+  "patterns": [
+    {
+      "contentName": "string.other.link.title.markdown.loam",
+      "begin": "\\[\\[",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.metadata.markdown.loam"
+        }
+      },
+      "end": "\\]\\]",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.metadata.markdown.loam"
+        }
+      }
+    }
+  ]
+}

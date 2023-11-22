@@ -10,15 +10,13 @@
       "type": "extensionHost",
       "request": "launch",
       "args": [
-        "${workspaceFolder}/packages/foam-vscode/.test-workspace",
+        "${workspaceFolder}/packages/loam-vscode/.test-workspace",
         "--disable-extensions",
         "--disable-workspace-trust",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/foam-vscode",
-        "--extensionTestsPath=${workspaceFolder}/packages/foam-vscode/out/test/suite"
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/loam-vscode",
+        "--extensionTestsPath=${workspaceFolder}/packages/loam-vscode/out/test/suite"
       ],
-      "outFiles": [
-        "${workspaceFolder}/packages/foam-vscode/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/loam-vscode/out/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}"
     },
     {
@@ -27,11 +25,9 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/foam-vscode"
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/loam-vscode"
       ],
-      "outFiles": [
-        "${workspaceFolder}/packages/foam-vscode/out/**/*.js"
-      ],
+      "outFiles": ["${workspaceFolder}/packages/loam-vscode/out/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}"
     },
     {
@@ -41,13 +37,9 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "disableOptimisticBPs": true,
-      "cwd": "${workspaceFolder}/packages/foam-vscode",
+      "cwd": "${workspaceFolder}/packages/loam-vscode",
       "runtimeExecutable": "yarn",
-      "args": [
-        "jest",
-        "--runInBand",
-        "--watchAll=false"
-      ]
+      "args": ["jest", "--runInBand", "--watchAll=false"]
     }
   ]
 }
