@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an idea for the `Foam` project
+description: Suggest an idea for the `Loam` project
 body:
   - type: markdown
     attributes:
