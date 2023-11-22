@@ -78,15 +78,12 @@ export function getDailyNoteFileName(date: Date): string {
  */
 export async function createDailyNoteIfNotExists(targetDate: Date) {
   const pathFromLegacyConfiguration = getDailyNotePath(targetDate);
-  const titleFormat: string =
-    getLoamVsCodeConfig('openDailyNote.titleFormat') ??
-    getLoamVsCodeConfig('openDailyNote.filenameFormat');
 
   const templateFallbackText = `---
 loam_template:
   filepath: "${pathFromLegacyConfiguration.toFsPath().replace(/\\/g, '\\\\')}"
 ---
-# ${dateFormat(targetDate, titleFormat, false)}
+
 `;
 
   return await NoteFactory.createFromDailyNoteTemplate(
