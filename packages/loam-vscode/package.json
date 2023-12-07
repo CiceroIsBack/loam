@@ -10,7 +10,7 @@
   "homepage": "https://github.com/CiceroIsBack/loam",
   "version": "0.25.4",
   "license": "MIT",
-  "publisher": "loam",
+  "publisher": "ciceroisback",
   "engines": {
     "vscode": "^1.70.0"
   },
