@@ -1,5 +1,5 @@
 {
-  "name": "loam-vscode",
+  "name": "loam",
   "displayName": "Loam",
   "description": "Logseq + Loam",
   "private": true,
@@ -8,7 +8,7 @@
     "type": "git"
   },
   "homepage": "https://github.com/CiceroIsBack/loam",
-  "version": "0.25.4",
+  "version": "0.2.1",
   "license": "MIT",
   "publisher": "ciceroisback",
   "engines": {

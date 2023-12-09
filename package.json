@@ -1,16 +1,17 @@
 {
   "name": "loam",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Loam",
   "repository": "git@github.com:CiceroIsBack/loam.git",
   "license": "MIT",
   "private": "true",
+  "publisher": "ciceroisback",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
     "version-extension": "lerna version",
-    "package-extension": "yarn workspace loam-vscode package-extension",
+    "package-extension": "yarn workspace loam package-extension",
     "install-extension": "yarn workspace loam-vscode install-extension",
     "publish-extension": "yarn workspace loam-vscode publish-extension",
     "reset": "yarn && yarn clean && yarn build",
@@ -25,7 +26,8 @@
     "lerna": "^6.4.1"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "vscode": "^1.70.0"
   },
   "husky": {
     "hooks": {
