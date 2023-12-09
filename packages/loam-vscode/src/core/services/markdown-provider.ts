@@ -53,7 +53,7 @@ export class MarkdownResourceProvider implements ResourceProvider {
     link: ResourceLink
   ) {
     let targetUri: URI | undefined;
-    const { target, section } = MarkdownLink.analyzeLink(link);
+    let { target, section } = MarkdownLink.analyzeLink(link);
     switch (link.type) {
       case 'wikilink': {
         let definitionUri = undefined;
@@ -62,6 +62,9 @@ export class MarkdownResourceProvider implements ResourceProvider {
             definitionUri = def.url;
             break;
           }
+        }
+        if (target.indexOf('/') !== -1) {
+          target = target.replace('/', '___');
         }
         if (isSome(definitionUri)) {
           const definedUri = resource.uri.resolve(definitionUri);
