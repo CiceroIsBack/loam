@@ -14,8 +14,8 @@ Why "Loam"? Loam is a combination of "Logseq" + "Foam". Also, loam in the real w
 
 ### Features to Implement
 
-- [ ] support hierarchy in links (namespaces; has to change "/" to "\_\_")
-- [ ] support for tags as links (incl in backlinks section)
+- [x] support hierarchy in links (namespaces; has to change "/" to "\_\_")
+- [x] support for tags as links (incl in backlinks section)
 - [ ] support for block ids
 - [ ] support collapsed::true ?? (not important)
 - [ ] support TODO / DONE
