@@ -1,19 +1,22 @@
 {
   "name": "loam",
   "displayName": "Loam",
-  "description": "Logseq + Loam",
+  "description": "Logseq + Foam",
   "private": true,
   "repository": {
     "url": "https://github.com/CiceroIsBack/loam",
     "type": "git"
   },
   "homepage": "https://github.com/CiceroIsBack/loam",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "license": "MIT",
   "publisher": "ciceroisback",
   "engines": {
     "vscode": "^1.70.0"
   },
+  "permissions": [
+    "workspace"
+  ],
   "icon": "assets/icon/FOAM_ICON_256.png",
   "categories": [
     "Other"
@@ -631,9 +634,6 @@
           "type": "object",
           "description": "Custom graph styling settings. An example is present in the documentation.",
           "default": {}
-        },
-        "files.exclude": {
-          "logseq/*": true
         }
       }
     },

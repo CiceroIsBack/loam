@@ -4,7 +4,7 @@ import { workspace, ExtensionContext, window, commands } from 'vscode';
 import { MarkdownResourceProvider } from './core/services/markdown-provider';
 import { bootstrap } from './core/model/loam';
 import { Logger } from './core/utils/log';
-
+import * as vscode from 'vscode';
 import { features } from './features';
 import { VsCodeOutputLogger, exposeLogger } from './services/logging';
 import {
@@ -103,6 +103,13 @@ export async function activate(context: ExtensionContext) {
     );
 
     const res = (await Promise.all(resPromises)).filter(r => r != null);
+
+    let config = vscode.workspace.getConfiguration('files');
+    config.update(
+      'exclude',
+      { 'logseq/*': true },
+      vscode.ConfigurationTarget.Workspace
+    );
 
     return {
       extendMarkdownIt: (md: markdownit) => {
