@@ -212,6 +212,11 @@ export class WikilinkCompletionProvider
       item.insertText = useAlias
         ? `${identifier}|${resource.title}`
         : identifier;
+
+      if (item.insertText.indexOf('___') !== -1) {
+        item.insertText = item.insertText.replace('___', '/');
+      }
+
       item.commitCharacters = useAlias ? [] : linkCommitCharacters;
       item.range = replacementRange;
       item.command = COMPLETION_CURSOR_MOVE;
@@ -240,7 +245,7 @@ export class WikilinkCompletionProvider
           uri.path,
           vscode.CompletionItemKind.Interface
         );
-        item.insertText = uri.path;
+        item.insertText = uri.path.replace('___', '/');
         item.command = COMPLETION_CURSOR_MOVE;
         item.range = replacementRange;
         return item;
