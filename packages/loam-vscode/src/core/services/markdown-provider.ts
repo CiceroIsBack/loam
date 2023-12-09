@@ -81,6 +81,28 @@ export class MarkdownResourceProvider implements ResourceProvider {
         }
         break;
       }
+      case 'taglink': {
+        let definitionUri = undefined;
+        for (const def of resource.definitions) {
+          if (def.label === target) {
+            definitionUri = def.url;
+            break;
+          }
+        }
+        if (isSome(definitionUri)) {
+          const definedUri = resource.uri.resolve(definitionUri);
+          targetUri =
+            workspace.find(definedUri, resource.uri)?.uri ??
+            URI.placeholder(definedUri.path);
+        } else {
+          targetUri =
+            target === ''
+              ? resource.uri
+              : workspace.find(target, resource.uri)?.uri ??
+                URI.placeholder(target);
+        }
+        break;
+      }
       case 'link': {
         // force ambiguous links to be treated as relative
         const path =

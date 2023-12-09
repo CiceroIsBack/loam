@@ -7,6 +7,7 @@ export abstract class MarkdownLink {
   private static directLinkRegex = new RegExp(
     /\[(.*)\]\(<?([^#>]*)?#?([^\]>]+)?>?\)/
   );
+  private static tagLinkRegex = new RegExp(/#(\S+)/);
 
   public static analyzeLink(link: ResourceLink) {
     try {
@@ -30,6 +31,14 @@ export abstract class MarkdownLink {
           alias: alias ?? '',
         };
       }
+      if (link.type === 'taglink') {
+        const [, target] = this.tagLinkRegex.exec(link.rawText);
+        return {
+          target: target ?? '',
+          section: '',
+          alias: '',
+        };
+      }
       throw new Error(`Link of type ${link.type} is not supported`);
     } catch (e) {
       throw new Error(`Couldn't parse link ${link.rawText} - ${e}`);
@@ -50,6 +59,12 @@ export abstract class MarkdownLink {
     if (link.type === 'wikilink') {
       return {
         newText: `${embed}[[${newTarget}${sectionDivider}${newSection}${aliasDivider}${newAlias}]]`,
+        range: link.range,
+      };
+    }
+    if (link.type === 'taglink') {
+      return {
+        newText: `${embed}#${newTarget}`,
         range: link.range,
       };
     }

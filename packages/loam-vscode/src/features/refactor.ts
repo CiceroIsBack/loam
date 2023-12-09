@@ -47,6 +47,21 @@ export default async function activate(
               );
               break;
             }
+            case 'taglink': {
+              const identifier = loam.workspace.getIdentifier(
+                fromVsCodeUri(newUri),
+                [fromVsCodeUri(oldUri)]
+              );
+              const edit = MarkdownLink.createUpdateLinkEdit(connection.link, {
+                target: identifier,
+              });
+              renameEdits.replace(
+                toVsCodeUri(connection.source),
+                toVsCodeRange(edit.range),
+                edit.newText
+              );
+              break;
+            }
             case 'link': {
               const path = isAbsolute(target)
                 ? '/' + vscode.workspace.asRelativePath(newUri)

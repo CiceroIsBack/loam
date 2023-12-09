@@ -166,7 +166,11 @@ export function createMarkdownParser(
 const getTextFromChildren = (root: Node): string => {
   let text = '';
   visit(root, node => {
-    if (node.type === 'text' || node.type === 'wikiLink') {
+    if (
+      node.type === 'text' ||
+      node.type === 'wikiLink' ||
+      node.type === 'taglink'
+    ) {
       text = text + ((node as any).value || '');
     }
   });
@@ -199,6 +203,13 @@ const tagsPlugin: ParserPlugin = {
         note.tags.push({
           label: tag.label,
           range: Range.createFromPosition(start, end),
+        });
+
+        note.links.push({
+          type: 'taglink',
+          rawText: `#${tag.label}`,
+          range: Range.createFromPosition(start, end),
+          isEmbed: false,
         });
       }
     }
@@ -323,6 +334,18 @@ const wikilinkPlugin: ParserPlugin = {
         rawText: literalContent,
         range,
         isEmbed,
+      });
+    }
+    if (note.type === 'taglink') {
+      const literalContent = noteSource.substring(
+        node.position!.start.offset!,
+        node.position!.end.offset!
+      );
+      note.links.push({
+        type: 'taglink',
+        rawText: literalContent,
+        range: astPositionToLoamRange(node.position!),
+        isEmbed: false,
       });
     }
     if (node.type === 'link' || node.type === 'image') {
