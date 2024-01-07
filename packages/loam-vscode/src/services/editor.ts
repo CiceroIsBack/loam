@@ -107,6 +107,13 @@ export function getCurrentEditorDirectory(): URI {
   throw new Error('A file must be open in editor, or workspace folder needed');
 }
 
+export function getCurrentWorkspaceDirectory(): URI {
+  if (workspace.workspaceFolders.length > 0) {
+    return fromVsCodeUri(workspace.workspaceFolders[0].uri);
+  }
+  throw new Error('No workspace folder is open');
+}
+
 export async function fileExists(uri: URI): Promise<boolean> {
   try {
     const stat = await workspace.fs.stat(toVsCodeUri(uri));
