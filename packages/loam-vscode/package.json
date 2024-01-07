@@ -509,11 +509,12 @@
         },
         "loam.files.newNotePath": {
           "type": "string",
-          "default": "root",
+          "default": "pagesDir",
           "description": "Specifies where to create a new note. It is overruled by the template or command arguments",
           "enum": [
             "root",
-            "currentDir"
+            "currentDir",
+            "pagesDir"
           ],
           "enumDescriptions": [
             "Use the root of the workspace",

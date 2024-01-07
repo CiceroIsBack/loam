@@ -19,6 +19,7 @@ import {
   fileExists,
   findSelectionContent,
   getCurrentEditorDirectory,
+  getCurrentWorkspaceDirectory,
   readFile,
   replaceSelection,
 } from './editor';
@@ -113,6 +114,7 @@ export type OnFileExistStrategy =
 export type OnRelativePathStrategy =
   | 'resolve-from-root'
   | 'resolve-from-current-dir'
+  | 'resolve-from-pages-dir'
   | 'cancel'
   | 'ask'
   | ((filePath: URI) => Promise<URI | undefined>);
@@ -211,10 +213,17 @@ const createFnForOnRelativePathStrategy =
   async (existingFile: URI) => {
     // Get the default from the configuration
     if (isNone(onRelativePath)) {
-      onRelativePath =
-        getLoamVsCodeConfig('files.newNotePath') === 'root'
-          ? 'resolve-from-root'
-          : 'resolve-from-current-dir';
+      switch (getLoamVsCodeConfig('files.newNotePath')) {
+        case 'root':
+          onRelativePath = 'resolve-from-root';
+          break;
+        case 'currentDir':
+          onRelativePath = 'resolve-from-current-dir';
+          break;
+        case 'pagesDir':
+          onRelativePath = 'resolve-from-pages-dir';
+          break;
+      }
     }
 
     if (typeof onRelativePath === 'function') {
@@ -222,6 +231,10 @@ const createFnForOnRelativePathStrategy =
     }
 
     switch (onRelativePath) {
+      case 'resolve-from-pages-dir':
+        return getCurrentWorkspaceDirectory().joinPath(
+          `pages/${existingFile.path}`
+        );
       case 'resolve-from-current-dir':
         return getCurrentEditorDirectory().joinPath(existingFile.path);
       case 'resolve-from-root':
