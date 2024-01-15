@@ -10,6 +10,7 @@ import linkDecorations from './document-decorator';
 import navigationProviders from './navigation-provider';
 import wikilinkDiagnostics from './wikilink-diagnostics';
 import refactor from './refactor';
+import peekBacklinks from './peek-backlinks';
 
 export const features: FoamFeature[] = [
   ...Object.values(commands),
@@ -23,4 +24,5 @@ export const features: FoamFeature[] = [
   preview,
   completionProvider,
   tagCompletionProvider,
+  peekBacklinks,
 ];

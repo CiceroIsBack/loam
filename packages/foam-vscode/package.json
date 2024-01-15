@@ -443,6 +443,10 @@
       {
         "command": "foam-vscode.completion-move-cursor",
         "title": "Foam: Move cursor after completion"
+      },
+      {
+        "command": "foam-vscode.peek-backlinks.show",
+        "title": "Foam: Peek all backlinks"
       }
     ],
     "configuration": {
