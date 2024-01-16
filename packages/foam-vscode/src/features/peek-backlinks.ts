@@ -1,7 +1,7 @@
+// TODO: docstrings
 // TODO: dispose opened files
 // TODO: async processing
 // TODO: make context line count configurable
-// TODO: print context only once, even if there are multiple backlinks contained
 // TODO: text decoration theming
 // TODO: make output more markdown render-friendly
 // TODO: sort files?
@@ -124,6 +124,30 @@ const _lineNumberDecorationType = vscode.window.createTextEditorDecorationType(
 
 function initializeDecorations(context: ExtensionContext) {
 
+  // define update decorations method
+  const updateDecorations = (doc: TextDocument, editor: TextEditor) => {
+    if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
+        return;
+  
+      const lineNumberRegex = /^\s{2}\d+/gm;
+      const text = doc.getText();
+  
+      let match: RegExpExecArray;
+      let ranges: vscode.Range[] = [];
+  
+      while ((match = lineNumberRegex.exec(text))) {
+        const startPos = doc.positionAt(match.index);
+        const endPos = doc.positionAt(
+          match.index + match[0].length
+        );
+        const range = new vscode.Range(startPos, endPos);
+  
+        ranges.push(range);
+      }
+  
+      editor.setDecorations(_lineNumberDecorationType, ranges);
+  }
+
   // set decorations when backlinks.md is opened for the first time
   vscode.window.onDidChangeActiveTextEditor(
     editor => {
@@ -133,7 +157,7 @@ function initializeDecorations(context: ExtensionContext) {
       if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
         return;
 
-      UpdateDecorations(doc, editor);
+      updateDecorations(doc, editor);
     },
     // TODO: reason for these options?
     null,
@@ -155,38 +179,12 @@ function initializeDecorations(context: ExtensionContext) {
       if (!editor)
         return;
       
-      UpdateDecorations(doc, editor);
+      updateDecorations(doc, editor);
     },
     // TODO: reason for these options?
     null,
     context.subscriptions
   );
-}
-
-function UpdateDecorations(
-  doc: TextDocument,
-  editor: TextEditor
-) {
-  if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
-      return;
-
-    const lineNumberRegex = /^\s{2}\d+/gm;
-    const text = doc.getText();
-
-    let match: RegExpExecArray;
-    let ranges: vscode.Range[] = [];
-
-    while ((match = lineNumberRegex.exec(text))) {
-      const startPos = doc.positionAt(match.index);
-      const endPos = doc.positionAt(
-        match.index + match[0].length
-      );
-      const range = new vscode.Range(startPos, endPos);
-
-      ranges.push(range);
-    }
-
-    editor.setDecorations(_lineNumberDecorationType, ranges);
 }
 
 export class PeekBacklinks
@@ -286,6 +284,10 @@ export class PeekBacklinks
     let currentLine = 0;
 
     for (const backlink of backlinks) {
+
+      // TODO: use this instead?
+      // const content = await workspace.fs.readFile(toVsCodeUri(uri));
+      // return decoder.decode(content);
 
       const document = await vscode.workspace.openTextDocument(
         Uri.parse(backlink.source.toString())
