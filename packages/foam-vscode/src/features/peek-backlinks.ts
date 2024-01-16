@@ -5,6 +5,7 @@
 // TODO: print context only once, even if there are multiple backlinks contained
 // TODO: text decoration theming
 // TODO: make output more markdown render-friendly
+// TODO: sort files?
 // resources: https://github.com/microsoft/vscode-extension-samples/tree/main/contentprovider-sample
 
 import * as vscode from 'vscode';
@@ -43,7 +44,7 @@ const BACKLINKS_FILE_NAME = 'backlinks.md';
 interface SourceDetails {
   startLine: number;
   endLine: number;
-  contents: string[];
+  consumedLine: number;
 }
 
 export default async function activate(
@@ -58,7 +59,12 @@ export default async function activate(
   // - opens the virtual document
   // - shows it in the next editor
   const commandHandler = async editor => {
-    const uri = encodeLocation(editor.document.uri, editor.selection.active);
+
+    const uri = vscode.Uri.from({
+      scheme: PEEK_BACKLINKS_SCHEME,
+      path: BACKLINKS_FILE_NAME
+    });
+
     const document = await workspace.openTextDocument(uri);
 
     window.showTextDocument(document, editor.viewColumn! + 1);
@@ -102,6 +108,7 @@ export default async function activate(
 }
 
 function initializeDecorations(context: ExtensionContext) {
+
   const lineNumberDecorationType = vscode.window.createTextEditorDecorationType(
     {
       fontWeight: 'bold',
@@ -116,7 +123,8 @@ function initializeDecorations(context: ExtensionContext) {
 
   vscode.window.onDidChangeActiveTextEditor(
     editor => {
-      if (editor && editor.document.uri.scheme === PEEK_BACKLINKS_SCHEME) {
+      // TODO: set decoration whenever the virtual document is open and has changed (how to get correct editor?)
+      if (editor.document.uri.scheme === PEEK_BACKLINKS_SCHEME) {
         const lineNumberRegex = /^\s{2}\d+/gm;
         const text = editor.document.getText();
 
@@ -148,8 +156,35 @@ export class PeekBacklinks
     DocumentLinkProvider,
     FoldingRangeProvider
 {
+  private _currentDocument? : Uri;
+
   public constructor(private graph: FoamGraph) {
-    //
+    
+    // TextDocumentContentProvider
+    const onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
+    const onDidChangeFoldingRangesEmitter = new vscode.EventEmitter<void>();
+
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+
+      this._currentDocument = editor.document.uri;
+
+      if (this._currentDocument.scheme == PEEK_BACKLINKS_SCHEME)
+        return;
+
+      let uri = vscode.Uri.from({
+        scheme: PEEK_BACKLINKS_SCHEME,
+        path: BACKLINKS_FILE_NAME
+      });
+      
+      // TODO: improve general opened document / context handling
+      this._sourceDetailsMap.clear()
+      // TODO: only fire when document is .md and scheme matches
+      onDidChangeEmitter.fire(uri);
+      onDidChangeFoldingRangesEmitter.fire();
+    })
+
+    this.onDidChange = onDidChangeEmitter.event;
+    this.onDidChangeFoldingRanges = onDidChangeFoldingRangesEmitter.event;
   }
 
   dispose() {
@@ -176,7 +211,8 @@ export class PeekBacklinks
     const range = new vscode.Range(0, 0, 0, 0);
 
     const command: Command = {
-      title: '🔍 Peek backlinks', // alternative symbol: 🕸️
+      // alternative symbol: 🕸️
+      title: `🔍 Peek ${backlinks.length} backlink${backlinks.length == 1 ? '' : 's'}`,
       command: PEEK_BACKLINKS_COMMAND,
     };
 
@@ -197,8 +233,11 @@ export class PeekBacklinks
   onDidChange?: vscode.Event<Uri>;
 
   public async provideTextDocumentContent(uri: Uri): Promise<string> {
-    const [target, _] = decodeLocation(uri);
-    const foamUri = fromVsCodeUri(target);
+
+    if (!this._currentDocument)
+      return;
+
+    const foamUri = fromVsCodeUri(this._currentDocument);
     const backlinks = this.graph.getBacklinks(foamUri);
     const responseLines: string[] = [];
 
@@ -206,6 +245,7 @@ export class PeekBacklinks
     let currentLine = 0;
 
     for (const backlink of backlinks) {
+
       const document = await vscode.workspace.openTextDocument(
         Uri.parse(backlink.source.toString())
       );
@@ -214,10 +254,12 @@ export class PeekBacklinks
       let sourceDetails: SourceDetails;
 
       if (!this._sourceDetailsMap.has(document)) {
+
         // append backlink source's URI to the text response
-        const workspaceFolder = vscode.workspace.getWorkspaceFolder(
-          toVsCodeUri(backlink.source)
-        )?.uri.path;
+        const workspaceFolder = vscode.workspace
+          .getWorkspaceFolder(toVsCodeUri(backlink.source))
+          ?.uri.path;
+
         const relativeUri = backlink.source.path.replace(workspaceFolder, '');
 
         if (responseLines.length > 0) {
@@ -228,40 +270,40 @@ export class PeekBacklinks
         sourceDetails = {
           startLine: currentLine,
           endLine: undefined,
-          contents: [],
+          consumedLine: 0,
         };
 
         this._sourceDetailsMap.set(document, sourceDetails);
         responseLines.push(relativeUri);
         currentLine++;
+
       } else {
         sourceDetails = this._sourceDetailsMap.get(document);
       }
 
       // append backlink source's content to the text response
-      const sourceLine = backlink.link.range.start.line;
-      const content = document.lineAt(sourceLine).text;
-      const prefixedContent = `  ${sourceLine + 1}: ${content}`;
+      const backlinkLine = backlink.link.range.start.line;
+      const content = document.lineAt(backlinkLine).text;
+      const prefixedContent = `  ${backlinkLine + 1}: ${content}`;
 
-      responseLines.push('');
-      currentLine++;
       currentLine += PeekBacklinks.appendLeading(
         document,
-        sourceLine,
+        backlinkLine,
+        sourceDetails.consumedLine,
         responseLines
       );
+
       responseLines.push(prefixedContent);
       currentLine++;
+
       currentLine += PeekBacklinks.appendTrailing(
         document,
-        sourceLine,
+        backlinkLine,
         responseLines
       );
 
       sourceDetails.endLine = currentLine;
-
-      // TODO is contents array really needed?
-      sourceDetails.contents.push(prefixedContent);
+      sourceDetails.consumedLine = backlinkLine + CONTEXT_LINE_COUNT;
     }
 
     return responseLines.join('\n');
@@ -269,16 +311,23 @@ export class PeekBacklinks
 
   private static appendLeading(
     document: TextDocument,
-    line: number,
+    backlinkLine: number,
+    consumedLine: number,
     responseLines: string[]
   ): number {
-    let from = Math.max(0, line - CONTEXT_LINE_COUNT);
+    let fromRequested = Math.max(0, backlinkLine - CONTEXT_LINE_COUNT);
+    let fromActual = Math.max(consumedLine, fromRequested);
     let lineCount = 0;
 
-    while (++from < line) {
-      const text = document.lineAt(from).text;
+    if (fromRequested >= consumedLine && consumedLine != 0) {
+      responseLines.push('  ...');
+      lineCount++;
+    }
 
-      responseLines.push(`  ${from + 1}` + (text && `  ${text}`));
+    while (++fromActual < backlinkLine) {
+      const text = document.lineAt(fromActual).text;
+
+      responseLines.push(`  ${fromActual + 1}` + (text && `  ${text}`));
       lineCount++;
     }
 
@@ -287,15 +336,15 @@ export class PeekBacklinks
 
   private static appendTrailing(
     document: TextDocument,
-    line: number,
+    backlinkLine: number,
     responseLines: string[]
   ): number {
-    const to = Math.min(document.lineCount, line + CONTEXT_LINE_COUNT);
+    const to = Math.min(document.lineCount, backlinkLine + CONTEXT_LINE_COUNT);
     let lineCount = 0;
 
-    while (++line < to) {
-      const text = document.lineAt(line).text;
-      responseLines.push(`  ${line + 1}` + (text && `  ${text}`));
+    while (++backlinkLine < to) {
+      const text = document.lineAt(backlinkLine).text;
+      responseLines.push(`  ${backlinkLine + 1}` + (text && `  ${text}`));
       lineCount++;
     }
 
@@ -348,23 +397,4 @@ export class PeekBacklinks
 
     return foldingRanges;
   }
-}
-
-// helper methods
-function encodeLocation(uri: vscode.Uri, pos: vscode.Position): vscode.Uri {
-  const query = JSON.stringify([uri.toString(), pos.line, pos.character]);
-
-  return vscode.Uri.from({
-    scheme: PEEK_BACKLINKS_SCHEME,
-    path: BACKLINKS_FILE_NAME,
-    query: query,
-  });
-}
-
-function decodeLocation(uri: vscode.Uri): [vscode.Uri, vscode.Position] {
-  const [target, line, character] = <[string, number, number]>(
-    JSON.parse(uri.query)
-	);
-	
-  return [vscode.Uri.parse(target), new vscode.Position(line, character)];
 }
