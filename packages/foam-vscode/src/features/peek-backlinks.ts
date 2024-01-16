@@ -324,8 +324,6 @@ export class PeekBacklinks
 
       // append wiki doc content to the text response
       const backlinkLine = backlink.link.range.start.line;
-      const content = document.lineAt(backlinkLine).text;
-      const prefixedContent = `  ${backlinkLine + 1}: ${content}`;
 
       currentLine += PeekBacklinks.appendLeading(
         document,
@@ -334,8 +332,11 @@ export class PeekBacklinks
         responseLines
       );
 
-      responseLines.push(prefixedContent);
-      currentLine++;
+      currentLine += PeekBacklinks.appendMatch(
+        document,
+        backlinkLine,
+        responseLines
+      );
 
       currentLine += PeekBacklinks.appendTrailing(
         document,
@@ -346,6 +347,9 @@ export class PeekBacklinks
       linkedDocDetails.endLine = currentLine;
       linkedDocDetails.consumedLine = backlinkLine + CONTEXT_LINE_COUNT;
     }
+
+    if (responseLines.length == 0)
+      responseLines.push("There are no backlinks to peek.");
 
     return responseLines.join('\n');
   }
@@ -413,11 +417,12 @@ export class PeekBacklinks
   }
 
   private static appendLeading(
-    document: TextDocument,
+    doc: TextDocument,
     backlinkLine: number,
     consumedLine: number,
     responseLines: string[]
   ): number {
+
     let fromRequested = Math.max(0, backlinkLine - CONTEXT_LINE_COUNT);
     let fromActual = Math.max(consumedLine, fromRequested);
     let lineCount = 0;
@@ -428,7 +433,7 @@ export class PeekBacklinks
     }
 
     while (++fromActual < backlinkLine) {
-      const text = document.lineAt(fromActual).text;
+      const text = doc.lineAt(fromActual).text;
 
       responseLines.push(`  ${fromActual + 1}` + (text && `  ${text}`));
       lineCount++;
@@ -437,16 +442,29 @@ export class PeekBacklinks
     return lineCount;
   }
 
+  private static appendMatch(
+    doc: TextDocument,
+    backlinkLine: number,
+    responseLines: string[]
+  ) {
+
+    const content = doc.lineAt(backlinkLine).text;
+    responseLines.push(`  ${backlinkLine + 1}: ${content}`);
+    
+    return 1;
+  }
+
   private static appendTrailing(
-    document: TextDocument,
+    doc: TextDocument,
     backlinkLine: number,
     responseLines: string[]
   ): number {
-    const to = Math.min(document.lineCount, backlinkLine + CONTEXT_LINE_COUNT);
+
+    const to = Math.min(doc.lineCount, backlinkLine + CONTEXT_LINE_COUNT);
     let lineCount = 0;
 
     while (++backlinkLine < to) {
-      const text = document.lineAt(backlinkLine).text;
+      const text = doc.lineAt(backlinkLine).text;
       responseLines.push(`  ${backlinkLine + 1}` + (text && `  ${text}`));
       lineCount++;
     }
