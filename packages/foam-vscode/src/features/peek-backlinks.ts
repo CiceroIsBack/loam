@@ -1,6 +1,5 @@
 // TODO: dispose opened files
 // TODO: async processing
-// TODO: update when wiki doc files change
 // TODO: make context line count configurable
 // TODO: print context only once, even if there are multiple backlinks contained
 // TODO: text decoration theming
@@ -25,6 +24,7 @@ import {
   ProviderResult,
   TextDocument,
   TextDocumentContentProvider,
+  TextEditor,
   Uri,
   commands,
   languages,
@@ -40,6 +40,8 @@ export const PEEK_BACKLINKS_SCHEME = 'foam-peek-backlinks';
 const PEEK_BACKLINKS_COMMAND = 'foam-vscode.peek-backlinks.show';
 const CONTEXT_LINE_COUNT = 3;
 const PEEK_BACKLINKS_FILE_NAME = 'backlinks.md';
+
+let _currentWikiDoc : Uri | undefined = undefined;
 
 interface LinkedDocDetails {
   startLine: number;
@@ -58,15 +60,16 @@ export default async function activate(
   // - crafts an uri with the scheme PEEK_BACKLINKS_SCHEME
   // - opens the virtual document
   // - shows it in the next editor
+  const uri = vscode.Uri.from({
+    scheme: PEEK_BACKLINKS_SCHEME,
+    path: PEEK_BACKLINKS_FILE_NAME
+  });
+
   const commandHandler = async editor => {
 
-    const uri = vscode.Uri.from({
-      scheme: PEEK_BACKLINKS_SCHEME,
-      path: PEEK_BACKLINKS_FILE_NAME
-    });
+    _currentWikiDoc = editor.document.uri;
 
     const document = await workspace.openTextDocument(uri);
-
     window.showTextDocument(document, editor.viewColumn! + 1);
   };
 
@@ -103,50 +106,87 @@ export default async function activate(
     providerRegistrations
   );
 
-  // decorations
   initializeDecorations(context);
 }
 
+// decorations
+const _lineNumberDecorationType = vscode.window.createTextEditorDecorationType(
+  {
+    fontWeight: 'bold',
+    light: {
+      color: '#855f79',
+    },
+    dark: {
+      color: '#855f79',
+    },
+  }
+);
+
 function initializeDecorations(context: ExtensionContext) {
 
-  const lineNumberDecorationType = vscode.window.createTextEditorDecorationType(
-    {
-      fontWeight: 'bold',
-      light: {
-        color: '#855f79',
-      },
-      dark: {
-        color: '#855f79',
-      },
-    }
-  );
-
+  // set decorations when backlinks.md is opened for the first time
   vscode.window.onDidChangeActiveTextEditor(
     editor => {
-      // TODO: set decoration whenever the virtual document is open and has changed (how to get correct editor?)
-      if (editor.document.uri.scheme === PEEK_BACKLINKS_SCHEME) {
-        const lineNumberRegex = /^\s{2}\d+/gm;
-        const text = editor.document.getText();
 
-        let match: RegExpExecArray;
-        let ranges: vscode.Range[] = [];
+      const doc = editor.document;
 
-        while ((match = lineNumberRegex.exec(text))) {
-          const startPos = editor.document.positionAt(match.index);
-          const endPos = editor.document.positionAt(
-            match.index + match[0].length
-          );
-          const range = new vscode.Range(startPos, endPos);
+      if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
+        return;
 
-          ranges.push(range);
-        }
-
-        editor.setDecorations(lineNumberDecorationType, ranges);
-      }
+      UpdateDecorations(doc, editor);
     },
+    // TODO: reason for these options?
     null,
     context.subscriptions
   );
+
+  // update decorations when content of backlinks.md has changed
+  vscode.workspace.onDidChangeTextDocument(
+    e => {
+
+      const doc = e.document;
+
+      if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
+        return;
+
+      const editor = vscode.window.visibleTextEditors
+        .find(current => current.document === doc);
+      
+      if (!editor)
+        return;
+      
+      UpdateDecorations(doc, editor);
+    },
+    // TODO: reason for these options?
+    null,
+    context.subscriptions
+  );
+}
+
+function UpdateDecorations(
+  doc: TextDocument,
+  editor: TextEditor
+) {
+  if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
+      return;
+
+    const lineNumberRegex = /^\s{2}\d+/gm;
+    const text = doc.getText();
+
+    let match: RegExpExecArray;
+    let ranges: vscode.Range[] = [];
+
+    while ((match = lineNumberRegex.exec(text))) {
+      const startPos = doc.positionAt(match.index);
+      const endPos = doc.positionAt(
+        match.index + match[0].length
+      );
+      const range = new vscode.Range(startPos, endPos);
+
+      ranges.push(range);
+    }
+
+    editor.setDecorations(_lineNumberDecorationType, ranges);
 }
 
 export class PeekBacklinks
@@ -161,9 +201,8 @@ export class PeekBacklinks
   //   key: linked document
   //   value: linked document details
   private _wikiDocToLinkedDocDetailsMap = new Map<Uri, Map<TextDocument, LinkedDocDetails>>();
-  private _currentWikiDoc? : Uri;
 
-  public constructor(private graph: FoamGraph) {
+  constructor(private graph: FoamGraph) {
     
     // ensure that the peek document content is updated when the user opens another wiki document
     const onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
@@ -174,7 +213,7 @@ export class PeekBacklinks
       if (editor.document.uri.scheme == PEEK_BACKLINKS_SCHEME)
         return;
 
-      this._currentWikiDoc = editor.document.uri;
+      _currentWikiDoc = editor.document.uri;
       
       let uri = vscode.Uri.from({
         scheme: PEEK_BACKLINKS_SCHEME,
@@ -233,13 +272,13 @@ export class PeekBacklinks
   // TextDocumentContentProvider
   onDidChange?: vscode.Event<Uri>;
 
-  public async provideTextDocumentContent(uri: Uri): Promise<string> {
+  async provideTextDocumentContent(uri: Uri): Promise<string> {
 
-    if (!this._currentWikiDoc)
+    if (!_currentWikiDoc)
       return;
 
     const linkedDocDetailsMap = this.getOrCreateWikiDocEntry(true);
-    const foamUri = fromVsCodeUri(this._currentWikiDoc);
+    const foamUri = fromVsCodeUri(_currentWikiDoc);
     const backlinks = this.graph.getBacklinks(foamUri);
     const responseLines: string[] = [];
 
@@ -311,6 +350,68 @@ export class PeekBacklinks
     return responseLines.join('\n');
   }
 
+  // DocumentLinkProvider
+  provideDocumentLinks(
+    document: TextDocument,
+    token: CancellationToken
+  ): ProviderResult<DocumentLink[]> {
+
+    const linkedDocDetailsMap = this.getOrCreateWikiDocEntry();
+    const documentLinks: DocumentLink[] = [];
+
+    for (let [wikiDoc, linkedDocDetails] of linkedDocDetailsMap) {
+      const range = document.lineAt(linkedDocDetails.startLine).range;
+      const documentLink = new DocumentLink(range, wikiDoc.uri);
+
+      documentLinks.push(documentLink);
+    }
+
+    return documentLinks;
+  }
+
+  resolveDocumentLink?(
+    link: DocumentLink,
+    token: CancellationToken
+  ): vscode.ProviderResult<DocumentLink> {
+    return; // do nothing
+  }
+
+  // FoldingRangeProvider
+  onDidChangeFoldingRanges?: vscode.Event<void>;
+
+  provideFoldingRanges(
+    document: TextDocument,
+    context: FoldingContext,
+    token: CancellationToken
+  ): ProviderResult<FoldingRange[]> {
+
+    const wikiDocDetailsMap = this.getOrCreateWikiDocEntry();
+    const foldingRanges: FoldingRange[] = [];
+
+    for (let [_, linkedDocDetails] of wikiDocDetailsMap) {
+      const foldingRange = new FoldingRange(
+        linkedDocDetails.startLine,
+        linkedDocDetails.endLine - 1,
+        FoldingRangeKind.Region
+      );
+
+      foldingRanges.push(foldingRange);
+    }
+
+    return foldingRanges;
+  }
+
+  // helper methods
+  private getOrCreateWikiDocEntry(reset: boolean = false): Map<TextDocument, LinkedDocDetails> {
+    
+    if (reset || !this._wikiDocToLinkedDocDetailsMap.has(_currentWikiDoc)) {
+      this._wikiDocToLinkedDocDetailsMap
+        .set(_currentWikiDoc, new Map<TextDocument, LinkedDocDetails>());
+    }
+
+    return this._wikiDocToLinkedDocDetailsMap.get(_currentWikiDoc);
+  }
+
   private static appendLeading(
     document: TextDocument,
     backlinkLine: number,
@@ -351,67 +452,5 @@ export class PeekBacklinks
     }
 
     return lineCount;
-  }
-
-  // DocumentLinkProvider
-  public provideDocumentLinks(
-    document: TextDocument,
-    token: CancellationToken
-  ): ProviderResult<DocumentLink[]> {
-
-    const linkedDocDetailsMap = this.getOrCreateWikiDocEntry();
-    const documentLinks: DocumentLink[] = [];
-
-    for (let [wikiDoc, linkedDocDetails] of linkedDocDetailsMap) {
-      const range = document.lineAt(linkedDocDetails.startLine).range;
-      const documentLink = new DocumentLink(range, wikiDoc.uri);
-
-      documentLinks.push(documentLink);
-    }
-
-    return documentLinks;
-  }
-
-  public resolveDocumentLink?(
-    link: DocumentLink,
-    token: CancellationToken
-  ): vscode.ProviderResult<DocumentLink> {
-    return; // do nothing
-  }
-
-  // FoldingRangeProvider
-  public onDidChangeFoldingRanges?: vscode.Event<void>;
-
-  public provideFoldingRanges(
-    document: TextDocument,
-    context: FoldingContext,
-    token: CancellationToken
-  ): ProviderResult<FoldingRange[]> {
-
-    const wikiDocDetailsMap = this.getOrCreateWikiDocEntry();
-    const foldingRanges: FoldingRange[] = [];
-
-    for (let [_, linkedDocDetails] of wikiDocDetailsMap) {
-      const foldingRange = new FoldingRange(
-        linkedDocDetails.startLine,
-        linkedDocDetails.endLine - 1,
-        FoldingRangeKind.Region
-      );
-
-      foldingRanges.push(foldingRange);
-    }
-
-    return foldingRanges;
-  }
-
-  // helper methods
-  private getOrCreateWikiDocEntry(reset: boolean = false): Map<TextDocument, LinkedDocDetails> {
-    
-    if (reset || !this._wikiDocToLinkedDocDetailsMap.has(this._currentWikiDoc)) {
-      this._wikiDocToLinkedDocDetailsMap
-        .set(this._currentWikiDoc, new Map<TextDocument, LinkedDocDetails>());
-    }
-
-    return this._wikiDocToLinkedDocDetailsMap.get(this._currentWikiDoc);
   }
 }
