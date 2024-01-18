@@ -1,11 +1,18 @@
-// TODO: docstrings
-// TODO: dispose opened files
-// TODO: async processing
-// TODO: make context line count configurable
-// TODO: text decoration theming
-// TODO: make output more markdown render-friendly
-// TODO: sort peeked files?
-// resources: https://github.com/microsoft/vscode-extension-samples/tree/main/contentprovider-sample
+// TODO:
+//   - docstrings
+//   - tests
+//   - make context line count configurable
+//   - text decoration theming
+//   - make output more markdown render-friendly
+//   - sort peeked files?
+//   - should the code-lens + command be moved into features/ folder?
+
+// note:
+//   No need to close documents opened by workspace.openTextDocument because of:
+//   https://github.com/microsoft/vscode/issues/187008#issuecomment-1621138679
+//
+// resources:
+//   https://github.com/microsoft/vscode-extension-samples/tree/main/contentprovider-sample
 
 import * as vscode from 'vscode';
 import {
@@ -42,7 +49,7 @@ const PEEK_BACKLINKS_COMMAND = 'foam-vscode.peek-backlinks.show';
 const CONTEXT_LINE_COUNT = 3;
 const PEEK_BACKLINKS_FILE_NAME = 'backlinks.md';
 
-let _currentWikiDoc : Uri | undefined = undefined;
+let _currentWikiDoc: Uri | undefined = undefined;
 
 interface LinkedDocDetails {
   startLine: number;
@@ -63,11 +70,10 @@ export default async function activate(
   // - shows it in the next editor
   const uri = Uri.from({
     scheme: PEEK_BACKLINKS_SCHEME,
-    path: PEEK_BACKLINKS_FILE_NAME
+    path: PEEK_BACKLINKS_FILE_NAME,
   });
 
   const commandHandler = async editor => {
-
     _currentWikiDoc = editor.document.uri;
 
     const document = await workspace.openTextDocument(uri);
@@ -111,52 +117,44 @@ export default async function activate(
 }
 
 // decorations
-const _lineNumberDecorationType = window.createTextEditorDecorationType(
-  {
-    fontWeight: 'bold',
-    light: {
-      color: '#855f79',
-    },
-    dark: {
-      color: '#855f79',
-    },
-  }
-);
+const _lineNumberDecorationType = window.createTextEditorDecorationType({
+  fontWeight: 'bold',
+  light: {
+    color: '#855f79',
+  },
+  dark: {
+    color: '#855f79',
+  },
+});
 
 function initializeDecorations(context: ExtensionContext) {
-
   // define update decorations method
   const updateDecorations = (doc: TextDocument, editor: TextEditor) => {
-    if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
-        return;
-  
-      const lineNumberRegex = /^\s{2}\d+/gm;
-      const text = doc.getText();
-  
-      let match: RegExpExecArray;
-      let ranges: vscode.Range[] = [];
-  
-      while ((match = lineNumberRegex.exec(text))) {
-        const startPos = doc.positionAt(match.index);
-        const endPos = doc.positionAt(
-          match.index + match[0].length
-        );
-        const range = new vscode.Range(startPos, endPos);
-  
-        ranges.push(range);
-      }
-  
-      editor.setDecorations(_lineNumberDecorationType, ranges);
-  }
+    if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
+
+    const lineNumberRegex = /^\s{2}\d+/gm;
+    const text = doc.getText();
+
+    let match: RegExpExecArray;
+    let ranges: vscode.Range[] = [];
+
+    while ((match = lineNumberRegex.exec(text))) {
+      const startPos = doc.positionAt(match.index);
+      const endPos = doc.positionAt(match.index + match[0].length);
+      const range = new vscode.Range(startPos, endPos);
+
+      ranges.push(range);
+    }
+
+    editor.setDecorations(_lineNumberDecorationType, ranges);
+  };
 
   // set decorations when backlinks.md is opened for the first time
   window.onDidChangeActiveTextEditor(
     editor => {
-
       const doc = editor.document;
 
-      if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
-        return;
+      if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
 
       updateDecorations(doc, editor);
     },
@@ -168,18 +166,16 @@ function initializeDecorations(context: ExtensionContext) {
   // update decorations when content of backlinks.md has changed
   workspace.onDidChangeTextDocument(
     e => {
-
       const doc = e.document;
 
-      if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
-        return;
+      if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
 
-      const editor = window.visibleTextEditors
-        .find(current => current.document === doc);
-      
-      if (!editor)
-        return;
-      
+      const editor = window.visibleTextEditors.find(
+        current => current.document === doc
+      );
+
+      if (!editor) return;
+
       updateDecorations(doc, editor);
     },
     // TODO: reason for these options?
@@ -199,32 +195,47 @@ export class PeekBacklinks
   // value: a nested map with
   //   key: the uri of the linked document
   //   value: linked document details
-  private _wikiDocToLinkedDocDetailsMap = new Map<Uri, Map<TextDocument, LinkedDocDetails>>();
+  private _wikiDocToLinkedDocDetailsMap = new Map<
+    Uri,
+    Map<TextDocument, LinkedDocDetails>
+  >();
 
   private _onDidChangeEmitter = new EventEmitter<Uri>();
   private _onDidChangeFoldingRangesEmitter = new EventEmitter<void>();
   private _subscriptions: Disposable;
 
-  constructor(private graph: FoamGraph) {
+  private _peekBacklinksUri = Uri.from({
+    scheme: PEEK_BACKLINKS_SCHEME,
+    path: PEEK_BACKLINKS_FILE_NAME,
+  });
 
+  constructor(private graph: FoamGraph) {
     this.onDidChange = this._onDidChangeEmitter.event;
     this.onDidChangeFoldingRanges = this._onDidChangeFoldingRangesEmitter.event;
 
     // ensure that the peek document content is updated when the user opens another wiki document
     this._subscriptions = window.onDidChangeActiveTextEditor(editor => {
+      if (editor.document.uri.scheme === PEEK_BACKLINKS_SCHEME) return;
 
-      if (editor.document.uri.scheme == PEEK_BACKLINKS_SCHEME)
-        return;
+      // only fire when document is of supported scheme and language
+      let isMatch = false;
 
+      for (const current of mdDocSelector) {
+        if (
+          editor.document.languageId === current.language &&
+          editor.document.uri.scheme === current.scheme
+        ) {
+          isMatch = true;
+        }
+      }
+
+      if (!isMatch) return;
+
+      // capture the current wiki document for later use
       _currentWikiDoc = editor.document.uri;
-      
-      let uri = Uri.from({
-        scheme: PEEK_BACKLINKS_SCHEME,
-        path: PEEK_BACKLINKS_FILE_NAME
-      });
-      
-      // TODO: only fire when document is .md and scheme matches
-      this._onDidChangeEmitter.fire(uri);
+
+      // fire change events to trigger re-rendering
+      this._onDidChangeEmitter.fire(this._peekBacklinksUri);
       this._onDidChangeFoldingRangesEmitter.fire();
     });
   }
@@ -242,7 +253,6 @@ export class PeekBacklinks
     document: TextDocument,
     token: CancellationToken
   ): ProviderResult<CodeLens[]> {
-
     // prevent circular peeking
     if (document.uri.scheme === PEEK_BACKLINKS_SCHEME) return;
 
@@ -257,7 +267,9 @@ export class PeekBacklinks
 
     const command: Command = {
       // alternative symbol: 🕸️
-      title: `🔍 Peek ${backlinks.length} backlink${backlinks.length == 1 ? '' : 's'}`,
+      title: `🔍 Peek ${backlinks.length} backlink${
+        backlinks.length === 1 ? '' : 's'
+      }`,
       command: PEEK_BACKLINKS_COMMAND,
     };
 
@@ -268,16 +280,14 @@ export class PeekBacklinks
     codeLens: CodeLens,
     token: CancellationToken
   ): ProviderResult<CodeLens> {
-    return; // there are not lenses to resolve
+    return; // there are no lenses to resolve
   }
 
   // TextDocumentContentProvider
   onDidChange?: vscode.Event<Uri>;
 
   async provideTextDocumentContent(uri: Uri): Promise<string> {
-
-    if (!_currentWikiDoc)
-      return;
+    if (!_currentWikiDoc) return;
 
     const linkedDocDetailsMap = this.getOrCreateWikiDocEntry(true);
     const foamUri = fromVsCodeUri(_currentWikiDoc);
@@ -288,8 +298,7 @@ export class PeekBacklinks
     let currentLine = 0;
 
     for (const backlink of backlinks) {
-
-      // TODO: Maybe open files this way is more efficient?
+      // TODO: Maybe open files as in the lines below is more efficient?
       // const content = await workspace.fs.readFile(toVsCodeUri(uri));
       // const text = decoder.decode(content);
 
@@ -301,11 +310,10 @@ export class PeekBacklinks
       let linkedDocDetails: LinkedDocDetails;
 
       if (!linkedDocDetailsMap.has(document)) {
-
         // append backlink source's URI to the text response
-        const workspaceFolder = workspace
-          .getWorkspaceFolder(toVsCodeUri(backlink.source))
-          ?.uri.path;
+        const workspaceFolder = workspace.getWorkspaceFolder(
+          toVsCodeUri(backlink.source)
+        )?.uri.path;
 
         const relativeUri = backlink.source.path.replace(workspaceFolder, '');
 
@@ -323,7 +331,6 @@ export class PeekBacklinks
         linkedDocDetailsMap.set(document, linkedDocDetails);
         responseLines.push(relativeUri);
         currentLine++;
-
       } else {
         linkedDocDetails = linkedDocDetailsMap.get(document);
       }
@@ -354,8 +361,8 @@ export class PeekBacklinks
       linkedDocDetails.consumedLine = backlinkLine + CONTEXT_LINE_COUNT;
     }
 
-    if (responseLines.length == 0)
-      responseLines.push("There are no backlinks to peek.");
+    if (responseLines.length === 0)
+      responseLines.push('There are no backlinks to peek.');
 
     return responseLines.join('\n');
   }
@@ -365,7 +372,6 @@ export class PeekBacklinks
     document: TextDocument,
     token: CancellationToken
   ): ProviderResult<DocumentLink[]> {
-
     const linkedDocDetailsMap = this.getOrCreateWikiDocEntry();
     const documentLinks: DocumentLink[] = [];
 
@@ -394,11 +400,10 @@ export class PeekBacklinks
     context: FoldingContext,
     token: CancellationToken
   ): ProviderResult<FoldingRange[]> {
-
     const wikiDocDetailsMap = this.getOrCreateWikiDocEntry();
     const foldingRanges: FoldingRange[] = [];
 
-    for (let [_, linkedDocDetails] of wikiDocDetailsMap) {
+    for (let [, linkedDocDetails] of wikiDocDetailsMap) {
       const foldingRange = new FoldingRange(
         linkedDocDetails.startLine,
         linkedDocDetails.endLine - 1,
@@ -412,11 +417,14 @@ export class PeekBacklinks
   }
 
   // helper methods
-  private getOrCreateWikiDocEntry(reset: boolean = false): Map<TextDocument, LinkedDocDetails> {
-    
+  private getOrCreateWikiDocEntry(
+    reset: boolean = false
+  ): Map<TextDocument, LinkedDocDetails> {
     if (reset || !this._wikiDocToLinkedDocDetailsMap.has(_currentWikiDoc)) {
-      this._wikiDocToLinkedDocDetailsMap
-        .set(_currentWikiDoc, new Map<TextDocument, LinkedDocDetails>());
+      this._wikiDocToLinkedDocDetailsMap.set(
+        _currentWikiDoc,
+        new Map<TextDocument, LinkedDocDetails>()
+      );
     }
 
     return this._wikiDocToLinkedDocDetailsMap.get(_currentWikiDoc);
@@ -428,12 +436,11 @@ export class PeekBacklinks
     consumedLine: number,
     responseLines: string[]
   ): number {
-
     let fromRequested = Math.max(0, backlinkLine - CONTEXT_LINE_COUNT);
     let fromActual = Math.max(consumedLine, fromRequested);
     let lineCount = 0;
 
-    if (fromRequested >= consumedLine && consumedLine != 0) {
+    if (fromRequested >= consumedLine && consumedLine !== 0) {
       responseLines.push('  ...');
       lineCount++;
     }
@@ -453,10 +460,9 @@ export class PeekBacklinks
     backlinkLine: number,
     responseLines: string[]
   ) {
-
     const content = doc.lineAt(backlinkLine).text;
     responseLines.push(`  ${backlinkLine + 1}: ${content}`);
-    
+
     return 1;
   }
 
@@ -465,7 +471,6 @@ export class PeekBacklinks
     backlinkLine: number,
     responseLines: string[]
   ): number {
-
     const to = Math.min(doc.lineCount, backlinkLine + CONTEXT_LINE_COUNT);
     let lineCount = 0;
 
