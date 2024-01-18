@@ -117,6 +117,15 @@ export default async function activate(
 }
 
 // decorations
+const _backlinkDecorationType = window.createTextEditorDecorationType({
+  light: {
+    backgroundColor: '#02adc422',
+  },
+  dark: {
+    backgroundColor: '#02adc422',
+  }
+});
+
 const _lineNumberDecorationType = window.createTextEditorDecorationType({
   fontWeight: 'bold',
   light: {
@@ -128,10 +137,43 @@ const _lineNumberDecorationType = window.createTextEditorDecorationType({
 });
 
 function initializeDecorations(context: ExtensionContext) {
-  // define update decorations method
-  const updateDecorations = (doc: TextDocument, editor: TextEditor) => {
-    if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
 
+  // define update decorations method for backlink name
+  const updateBacklinkNameDecorations = (editor: TextEditor) => {
+
+    if (!_currentWikiDoc)
+      return;
+
+    // TODO: is this safe?
+    const backlinkFileNameWithExt = _currentWikiDoc.path.substring(_currentWikiDoc.path.lastIndexOf("/") + 1);
+    const backlinkName = backlinkFileNameWithExt.replace(/\.[^/.]+$/, "");
+
+    const doc = editor.document;
+    const nameRegex = /\[{2}(.*?)]{2}/gm;
+    const text = doc.getText();
+
+    let match: RegExpExecArray;
+    let ranges: vscode.Range[] = [];
+
+    while ((match = nameRegex.exec(text))) {
+
+      if (match[1] !== backlinkName)
+        continue;
+
+      const startPos = doc.positionAt(match.index);
+      const endPos = doc.positionAt(match.index + match[0].length);
+      const range = new vscode.Range(startPos, endPos);
+
+      ranges.push(range);
+    }
+
+    editor.setDecorations(_backlinkDecorationType, ranges);
+  };
+
+  // define update decorations method for line numbers
+  const updateLineNumberDecorations = (editor: TextEditor) => {
+   
+    const doc = editor.document;
     const lineNumberRegex = /^\s{2}\d+/gm;
     const text = doc.getText();
 
@@ -152,11 +194,13 @@ function initializeDecorations(context: ExtensionContext) {
   // set decorations when backlinks.md is opened for the first time
   window.onDidChangeActiveTextEditor(
     editor => {
+
       const doc = editor.document;
 
       if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
 
-      updateDecorations(doc, editor);
+      updateBacklinkNameDecorations(editor);
+      updateLineNumberDecorations(editor);
     },
     // TODO: reason for these options?
     null,
@@ -166,6 +210,7 @@ function initializeDecorations(context: ExtensionContext) {
   // update decorations when content of backlinks.md has changed
   workspace.onDidChangeTextDocument(
     e => {
+
       const doc = e.document;
 
       if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
@@ -175,8 +220,9 @@ function initializeDecorations(context: ExtensionContext) {
       );
 
       if (!editor) return;
-
-      updateDecorations(doc, editor);
+      
+      updateBacklinkNameDecorations(editor);
+      updateLineNumberDecorations(editor);
     },
     // TODO: reason for these options?
     null,
