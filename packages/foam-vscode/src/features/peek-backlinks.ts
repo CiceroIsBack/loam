@@ -4,7 +4,7 @@
 // TODO: make context line count configurable
 // TODO: text decoration theming
 // TODO: make output more markdown render-friendly
-// TODO: sort files?
+// TODO: sort peeked files?
 // resources: https://github.com/microsoft/vscode-extension-samples/tree/main/contentprovider-sample
 
 import * as vscode from 'vscode';
@@ -16,6 +16,7 @@ import {
   Disposable,
   DocumentLink,
   DocumentLinkProvider,
+  EventEmitter,
   ExtensionContext,
   FoldingContext,
   FoldingRange,
@@ -60,7 +61,7 @@ export default async function activate(
   // - crafts an uri with the scheme PEEK_BACKLINKS_SCHEME
   // - opens the virtual document
   // - shows it in the next editor
-  const uri = vscode.Uri.from({
+  const uri = Uri.from({
     scheme: PEEK_BACKLINKS_SCHEME,
     path: PEEK_BACKLINKS_FILE_NAME
   });
@@ -110,7 +111,7 @@ export default async function activate(
 }
 
 // decorations
-const _lineNumberDecorationType = vscode.window.createTextEditorDecorationType(
+const _lineNumberDecorationType = window.createTextEditorDecorationType(
   {
     fontWeight: 'bold',
     light: {
@@ -149,7 +150,7 @@ function initializeDecorations(context: ExtensionContext) {
   }
 
   // set decorations when backlinks.md is opened for the first time
-  vscode.window.onDidChangeActiveTextEditor(
+  window.onDidChangeActiveTextEditor(
     editor => {
 
       const doc = editor.document;
@@ -165,7 +166,7 @@ function initializeDecorations(context: ExtensionContext) {
   );
 
   // update decorations when content of backlinks.md has changed
-  vscode.workspace.onDidChangeTextDocument(
+  workspace.onDidChangeTextDocument(
     e => {
 
       const doc = e.document;
@@ -173,7 +174,7 @@ function initializeDecorations(context: ExtensionContext) {
       if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME)
         return;
 
-      const editor = vscode.window.visibleTextEditors
+      const editor = window.visibleTextEditors
         .find(current => current.document === doc);
       
       if (!editor)
@@ -194,50 +195,53 @@ export class PeekBacklinks
     DocumentLinkProvider,
     FoldingRangeProvider
 {
-  // key: the uri of wiki document
+  // key: the uri of the wiki document
   // value: a nested map with
-  //   key: linked document
+  //   key: the uri of the linked document
   //   value: linked document details
   private _wikiDocToLinkedDocDetailsMap = new Map<Uri, Map<TextDocument, LinkedDocDetails>>();
 
-  constructor(private graph: FoamGraph) {
-    
-    // ensure that the peek document content is updated when the user opens another wiki document
-    const onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
-    const onDidChangeFoldingRangesEmitter = new vscode.EventEmitter<void>();
+  private _onDidChangeEmitter = new EventEmitter<Uri>();
+  private _onDidChangeFoldingRangesEmitter = new EventEmitter<void>();
+  private _subscriptions: Disposable;
 
-    vscode.window.onDidChangeActiveTextEditor(editor => {
+  constructor(private graph: FoamGraph) {
+
+    this.onDidChange = this._onDidChangeEmitter.event;
+    this.onDidChangeFoldingRanges = this._onDidChangeFoldingRangesEmitter.event;
+
+    // ensure that the peek document content is updated when the user opens another wiki document
+    this._subscriptions = window.onDidChangeActiveTextEditor(editor => {
 
       if (editor.document.uri.scheme == PEEK_BACKLINKS_SCHEME)
         return;
 
       _currentWikiDoc = editor.document.uri;
       
-      let uri = vscode.Uri.from({
+      let uri = Uri.from({
         scheme: PEEK_BACKLINKS_SCHEME,
         path: PEEK_BACKLINKS_FILE_NAME
       });
       
       // TODO: only fire when document is .md and scheme matches
-      onDidChangeEmitter.fire(uri);
-      onDidChangeFoldingRangesEmitter.fire();
-    })
-
-    this.onDidChange = onDidChangeEmitter.event;
-    this.onDidChangeFoldingRanges = onDidChangeFoldingRangesEmitter.event;
+      this._onDidChangeEmitter.fire(uri);
+      this._onDidChangeFoldingRangesEmitter.fire();
+    });
   }
 
   dispose() {
-    //
+    this._subscriptions.dispose();
+    this._onDidChangeEmitter.dispose();
+    this._onDidChangeFoldingRangesEmitter.dispose();
   }
 
   // CodeLensProvider
   onDidChangeCodeLenses?: vscode.Event<void>;
 
   provideCodeLenses(
-    document: vscode.TextDocument,
-    token: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.CodeLens[]> {
+    document: TextDocument,
+    token: CancellationToken
+  ): ProviderResult<CodeLens[]> {
 
     // prevent circular peeking
     if (document.uri.scheme === PEEK_BACKLINKS_SCHEME) return;
@@ -257,7 +261,7 @@ export class PeekBacklinks
       command: PEEK_BACKLINKS_COMMAND,
     };
 
-    return [new vscode.CodeLens(range, command)];
+    return [new CodeLens(range, command)];
   }
 
   resolveCodeLens?(
@@ -285,11 +289,11 @@ export class PeekBacklinks
 
     for (const backlink of backlinks) {
 
-      // TODO: use this instead?
+      // TODO: Maybe open files this way is more efficient?
       // const content = await workspace.fs.readFile(toVsCodeUri(uri));
-      // return decoder.decode(content);
+      // const text = decoder.decode(content);
 
-      const document = await vscode.workspace.openTextDocument(
+      const document = await workspace.openTextDocument(
         Uri.parse(backlink.source.toString())
       );
 
@@ -299,7 +303,7 @@ export class PeekBacklinks
       if (!linkedDocDetailsMap.has(document)) {
 
         // append backlink source's URI to the text response
-        const workspaceFolder = vscode.workspace
+        const workspaceFolder = workspace
           .getWorkspaceFolder(toVsCodeUri(backlink.source))
           ?.uri.path;
 
@@ -378,7 +382,7 @@ export class PeekBacklinks
   resolveDocumentLink?(
     link: DocumentLink,
     token: CancellationToken
-  ): vscode.ProviderResult<DocumentLink> {
+  ): ProviderResult<DocumentLink> {
     return; // do nothing
   }
 
