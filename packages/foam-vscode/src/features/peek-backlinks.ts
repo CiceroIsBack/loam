@@ -6,6 +6,7 @@
 //   - make output more markdown render-friendly
 //   - sort peeked files?
 //   - should the code-lens + command be moved into features/ folder?
+//   - sort backlink groups by title?
 
 // note:
 //   No need to close documents opened by workspace.openTextDocument because of:
@@ -29,6 +30,7 @@ import {
   FoldingRange,
   FoldingRangeKind,
   FoldingRangeProvider,
+  Position,
   ProviderResult,
   TextDocument,
   TextDocumentContentProvider,
@@ -40,9 +42,11 @@ import {
   workspace,
 } from 'vscode';
 import { Foam } from '../core/model/foam';
-import { FoamGraph } from '../core/model/graph';
+import { Connection, FoamGraph } from '../core/model/graph';
 import { fromVsCodeUri, toVsCodeUri } from '../utils/vsc-utils';
 import { mdDocSelector } from '../utils';
+import { URI } from '../core/model/uri';
+import { FoamWorkspace } from '../core/model/workspace';
 
 export const PEEK_BACKLINKS_SCHEME = 'foam-peek-backlinks';
 const PEEK_BACKLINKS_COMMAND = 'foam-vscode.peek-backlinks.show';
@@ -52,6 +56,7 @@ const PEEK_BACKLINKS_FILE_NAME = 'backlinks.md';
 let _currentWikiDoc: Uri | undefined = undefined;
 
 interface LinkedDocDetails {
+  titleLength: number;
   startLine: number;
   endLine: number;
   consumedLine: number;
@@ -88,7 +93,7 @@ export default async function activate(
   // instantiate and register providers for the peek backlinks feature
   // - code lens provider: for quick access to the peek backlinks feature
   // - document content provider: compiles the content of the peeked backlinks
-  const provider = new PeekBacklinks(foam.graph);
+  const provider = new PeekBacklinks(foam.workspace, foam.graph);
 
   const providerRegistrations = Disposable.from(
     languages.registerCodeLensProvider(mdDocSelector, provider),
@@ -144,10 +149,7 @@ function initializeDecorations(context: ExtensionContext) {
     if (!_currentWikiDoc)
       return;
 
-    // TODO: is this safe?
-    const backlinkFileNameWithExt = _currentWikiDoc.path.substring(_currentWikiDoc.path.lastIndexOf("/") + 1);
-    const backlinkName = backlinkFileNameWithExt.replace(/\.[^/.]+$/, "");
-
+    const backlinkName = fromVsCodeUri(_currentWikiDoc).getName();
     const doc = editor.document;
     const nameRegex = /\[{2}(.*?)]{2}/gm;
     const text = doc.getText();
@@ -255,7 +257,7 @@ export class PeekBacklinks
     path: PEEK_BACKLINKS_FILE_NAME,
   });
 
-  constructor(private graph: FoamGraph) {
+  constructor(private workspace: FoamWorkspace, private graph: FoamGraph) {
     this.onDidChange = this._onDidChangeEmitter.event;
     this.onDidChangeFoldingRanges = this._onDidChangeFoldingRangesEmitter.event;
 
@@ -335,33 +337,57 @@ export class PeekBacklinks
   async provideTextDocumentContent(uri: Uri): Promise<string> {
     if (!_currentWikiDoc) return;
 
-    const linkedDocDetailsMap = this.getOrCreateWikiDocEntry(true);
+    const linkedDocDetailsMap = this.getOrCreateWikiDocEntry(/* reset */ true);
     const foamUri = fromVsCodeUri(_currentWikiDoc);
     const backlinks = this.graph.getBacklinks(foamUri);
     const responseLines: string[] = [];
 
-    // loop over each backlink and build up text response
+    // group backlinks
+    var groupedBacklinks = backlinks.reduce((current, backlink) => {
+      let connections: Connection[];
+
+      if (!current.has(backlink.source)) {
+        connections = [];
+        current.set(backlink.source, connections);
+      }
+      else {
+        connections = current.get(backlink.source);
+      }
+
+      connections.push(backlink);
+      return current;
+    }, new Map<URI, Connection[]>());
+
+    // sort backlinks group by source name
+    const sortedBacklinksGroups = Array.from(groupedBacklinks.entries())
+      .sort((sourceA, sourceB) => {
+        const sourceNameA = sourceA[0].getName();
+        const sourceNameB = sourceB[0].getName();
+
+        return sourceNameA.localeCompare(sourceNameB);
+      });
+
+    // loop over each backlinks group and build up text response
     let currentLine = 0;
 
-    for (const backlink of backlinks) {
-      // TODO: Maybe open files as in the lines below is more efficient?
-      // const content = await workspace.fs.readFile(toVsCodeUri(uri));
-      // const text = decoder.decode(content);
-
-      const document = await workspace.openTextDocument(
-        Uri.parse(backlink.source.toString())
-      );
+    for (const backlinksGroup of sortedBacklinksGroups) {
 
       // get or create 'linkedDocDetails'
       let linkedDocDetails: LinkedDocDetails;
+      let sourceDoc = backlinksGroup[0];
+
+      const document = await workspace.openTextDocument(
+        Uri.parse(sourceDoc.toString())
+      );
 
       if (!linkedDocDetailsMap.has(document)) {
         // append backlink source's URI to the text response
         const workspaceFolder = workspace.getWorkspaceFolder(
-          toVsCodeUri(backlink.source)
+          toVsCodeUri(sourceDoc)
         )?.uri.path;
 
-        const relativeUri = backlink.source.path.replace(workspaceFolder, '');
+        const title = this.workspace.get(sourceDoc).title;
+        const relativeUri = sourceDoc.path.replace(workspaceFolder, '');
 
         if (responseLines.length > 0) {
           responseLines.push('');
@@ -369,42 +395,49 @@ export class PeekBacklinks
         }
 
         linkedDocDetails = {
+          titleLength: title.length,
           startLine: currentLine,
           endLine: undefined,
           consumedLine: 0,
         };
 
         linkedDocDetailsMap.set(document, linkedDocDetails);
-        responseLines.push(relativeUri);
+        responseLines.push(`${title} (${relativeUri})`);
         currentLine++;
       } else {
         linkedDocDetails = linkedDocDetailsMap.get(document);
       }
 
-      // append wiki doc content to the text response
-      const backlinkLine = backlink.link.range.start.line;
+      // loop over each backlink
+      let backlinks = backlinksGroup[1];
 
-      currentLine += PeekBacklinks.appendLeading(
-        document,
-        backlinkLine,
-        linkedDocDetails.consumedLine,
-        responseLines
-      );
+      for (const backlink of backlinks) {
 
-      currentLine += PeekBacklinks.appendMatch(
-        document,
-        backlinkLine,
-        responseLines
-      );
+        // append wiki doc content to the text response
+        const backlinkLine = backlink.link.range.start.line;
 
-      currentLine += PeekBacklinks.appendTrailing(
-        document,
-        backlinkLine,
-        responseLines
-      );
+        currentLine += PeekBacklinks.appendLeading(
+          document,
+          backlinkLine,
+          linkedDocDetails.consumedLine,
+          responseLines
+        );
 
-      linkedDocDetails.endLine = currentLine;
-      linkedDocDetails.consumedLine = backlinkLine + CONTEXT_LINE_COUNT;
+        currentLine += PeekBacklinks.appendMatch(
+          document,
+          backlinkLine,
+          responseLines
+        );
+
+        currentLine += PeekBacklinks.appendTrailing(
+          document,
+          backlinkLine,
+          responseLines
+        );
+
+        linkedDocDetails.endLine = currentLine;
+        linkedDocDetails.consumedLine = backlinkLine + CONTEXT_LINE_COUNT;
+      }
     }
 
     if (responseLines.length === 0)
@@ -422,8 +455,13 @@ export class PeekBacklinks
     const documentLinks: DocumentLink[] = [];
 
     for (let [wikiDoc, linkedDocDetails] of linkedDocDetailsMap) {
-      const range = document.lineAt(linkedDocDetails.startLine).range;
-      const documentLink = new DocumentLink(range, wikiDoc.uri);
+
+      // create linke only for the file path (and not for the title which comes before)
+      const fullRange = document.lineAt(linkedDocDetails.startLine).range;
+      const actualStart = new Position(fullRange.start.line, linkedDocDetails.titleLength + 2);
+      const actualEnd = new Position(fullRange.end.line, fullRange.end.character - 1);
+      const actualRange = new vscode.Range(actualStart, actualEnd);
+      const documentLink = new DocumentLink(actualRange, wikiDoc.uri);
 
       documentLinks.push(documentLink);
     }
