@@ -7,6 +7,10 @@
 //   - sort peeked files?
 //   - should the code-lens + command be moved into features/ folder?
 //   - sort backlink groups by title?
+//   - remove line numbers to prettify output? 
+//   - also add some indication that not all relevant lines might have been shown
+//   - skip empty lines
+//   - focus should stay in original editor
 
 // note:
 //   No need to close documents opened by workspace.openTextDocument because of:
@@ -544,8 +548,8 @@ export class PeekBacklinks
     backlinkLine: number,
     responseLines: string[]
   ) {
-    const content = doc.lineAt(backlinkLine).text;
-    responseLines.push(`  ${backlinkLine + 1}: ${content}`);
+    const text = doc.lineAt(backlinkLine).text;
+    responseLines.push(`  ${backlinkLine + 1}: ${text}`);
 
     return 1;
   }
