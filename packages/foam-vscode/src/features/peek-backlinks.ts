@@ -2,7 +2,7 @@
 //   - docstrings
 //   - tests
 //   - make context line count configurable
-//   - text decoration theming
+//   - decorations theming
 //   - make output more markdown render-friendly
 //   - sort peeked files?
 //   - should the code-lens + command be moved into features/ folder?
@@ -63,7 +63,7 @@ interface LinkedDocDetails {
   titleLength: number;
   startLine: number;
   endLine: number;
-  consumedLine: number;
+  minLine: number;
 }
 
 export default async function activate(
@@ -135,14 +135,14 @@ const _backlinkDecorationType = window.createTextEditorDecorationType({
   }
 });
 
-const _lineNumberDecorationType = window.createTextEditorDecorationType({
-  fontWeight: 'bold',
+const _linkedDocHeaderDecorationType = window.createTextEditorDecorationType({
   light: {
-    color: '#855f79',
+    color: 'darkorange',
   },
   dark: {
-    color: '#855f79',
+    color: 'darkorange',
   },
+  isWholeLine: true
 });
 
 function initializeDecorations(context: ExtensionContext) {
@@ -153,9 +153,9 @@ function initializeDecorations(context: ExtensionContext) {
     if (!_currentWikiDoc)
       return;
 
-    const backlinkName = fromVsCodeUri(_currentWikiDoc).getName();
-    const doc = editor.document;
+    const backlinkName = fromVsCodeUri(_currentWikiDoc).getName().toLowerCase();
     const nameRegex = /\[{2}(.*?)]{2}/gm;
+    const doc = editor.document;
     const text = doc.getText();
 
     let match: RegExpExecArray;
@@ -163,7 +163,7 @@ function initializeDecorations(context: ExtensionContext) {
 
     while ((match = nameRegex.exec(text))) {
 
-      if (match[1] !== backlinkName)
+      if (match[1].toLocaleLowerCase() !== backlinkName)
         continue;
 
       const startPos = doc.positionAt(match.index);
@@ -176,25 +176,25 @@ function initializeDecorations(context: ExtensionContext) {
     editor.setDecorations(_backlinkDecorationType, ranges);
   };
 
-  // define update decorations method for line numbers
-  const updateLineNumberDecorations = (editor: TextEditor) => {
-   
+  // define update decorations method for backlink name
+  const updateLinkedDocHeaderDecorations = (editor: TextEditor) => {
+
+    const headerRegex = /^.*\s\(.*.md\)$/gm;
     const doc = editor.document;
-    const lineNumberRegex = /^\s{2}\d+/gm;
     const text = doc.getText();
 
     let match: RegExpExecArray;
     let ranges: vscode.Range[] = [];
 
-    while ((match = lineNumberRegex.exec(text))) {
-      const startPos = doc.positionAt(match.index);
-      const endPos = doc.positionAt(match.index + match[0].length);
-      const range = new vscode.Range(startPos, endPos);
+    while ((match = headerRegex.exec(text))) {
+
+      const position = doc.positionAt(match.index);
+      const range = doc.lineAt(position.line).range;
 
       ranges.push(range);
     }
 
-    editor.setDecorations(_lineNumberDecorationType, ranges);
+    editor.setDecorations(_linkedDocHeaderDecorationType, ranges);
   };
 
   // set decorations when backlinks.md is opened for the first time
@@ -206,7 +206,7 @@ function initializeDecorations(context: ExtensionContext) {
       if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
 
       updateBacklinkNameDecorations(editor);
-      updateLineNumberDecorations(editor);
+      updateLinkedDocHeaderDecorations(editor);
     },
     // TODO: reason for these options?
     null,
@@ -228,7 +228,7 @@ function initializeDecorations(context: ExtensionContext) {
       if (!editor) return;
       
       updateBacklinkNameDecorations(editor);
-      updateLineNumberDecorations(editor);
+      updateLinkedDocHeaderDecorations(editor);
     },
     // TODO: reason for these options?
     null,
@@ -402,12 +402,13 @@ export class PeekBacklinks
           titleLength: title.length,
           startLine: currentLine,
           endLine: undefined,
-          consumedLine: 0,
+          minLine: 0,
         };
 
         linkedDocDetailsMap.set(document, linkedDocDetails);
         responseLines.push(`${title} (${relativeUri})`);
-        currentLine++;
+        responseLines.push('');
+        currentLine+=2;
       } else {
         linkedDocDetails = linkedDocDetailsMap.get(document);
       }
@@ -423,24 +424,25 @@ export class PeekBacklinks
         currentLine += PeekBacklinks.appendLeading(
           document,
           backlinkLine,
-          linkedDocDetails.consumedLine,
+          linkedDocDetails,
           responseLines
         );
 
         currentLine += PeekBacklinks.appendMatch(
           document,
           backlinkLine,
+          linkedDocDetails,
           responseLines
         );
 
         currentLine += PeekBacklinks.appendTrailing(
           document,
           backlinkLine,
+          linkedDocDetails,
           responseLines
         );
 
         linkedDocDetails.endLine = currentLine;
-        linkedDocDetails.consumedLine = backlinkLine + CONTEXT_LINE_COUNT;
       }
     }
 
@@ -521,23 +523,26 @@ export class PeekBacklinks
   private static appendLeading(
     doc: TextDocument,
     backlinkLine: number,
-    consumedLine: number,
+    linkDocDetails: LinkedDocDetails,
     responseLines: string[]
   ): number {
-    let fromRequested = Math.max(0, backlinkLine - CONTEXT_LINE_COUNT);
-    let fromActual = Math.max(consumedLine, fromRequested);
+    const minLine = linkDocDetails.minLine;
+    const fromRequested = Math.max(0, backlinkLine - CONTEXT_LINE_COUNT);
+    const from = Math.max(minLine, fromRequested);
+    const to = backlinkLine;
     let lineCount = 0;
 
-    if (fromRequested >= consumedLine && consumedLine !== 0) {
-      responseLines.push('  ...');
+    if (fromRequested >= minLine && minLine !== 0) {
+      responseLines.push('...');
       lineCount++;
     }
 
-    while (++fromActual < backlinkLine) {
-      const text = doc.lineAt(fromActual).text;
+    for (let i = from; i < to; i++) {
+      const text = doc.lineAt(i).text;
 
-      responseLines.push(`  ${fromActual + 1}` + (text && `  ${text}`));
+      responseLines.push(text);
       lineCount++;
+      linkDocDetails.minLine = i + 1;
     }
 
     return lineCount;
@@ -546,10 +551,15 @@ export class PeekBacklinks
   private static appendMatch(
     doc: TextDocument,
     backlinkLine: number,
+    linkDocDetails: LinkedDocDetails,
     responseLines: string[]
   ) {
+    if (backlinkLine < linkDocDetails.minLine)
+      return 0;
+
     const text = doc.lineAt(backlinkLine).text;
-    responseLines.push(`  ${backlinkLine + 1}: ${text}`);
+    responseLines.push(text);
+    linkDocDetails.minLine = backlinkLine + 1;
 
     return 1;
   }
@@ -557,15 +567,20 @@ export class PeekBacklinks
   private static appendTrailing(
     doc: TextDocument,
     backlinkLine: number,
+    linkDocDetails: LinkedDocDetails,
     responseLines: string[]
   ): number {
+    const minLine = linkDocDetails.minLine;
+    const from = Math.max(minLine, backlinkLine);
     const to = Math.min(doc.lineCount, backlinkLine + CONTEXT_LINE_COUNT);
     let lineCount = 0;
 
-    while (++backlinkLine < to) {
-      const text = doc.lineAt(backlinkLine).text;
-      responseLines.push(`  ${backlinkLine + 1}` + (text && `  ${text}`));
+    for (let i = from; i < to; i++) {
+      const text = doc.lineAt(i).text;
+
+      responseLines.push(text);
       lineCount++;
+      linkDocDetails.minLine = i + 1;
     }
 
     return lineCount;
