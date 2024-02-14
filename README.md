@@ -13,7 +13,7 @@ To see the features of Foam, check out [their README](https://github.com/foambub
 
 To enable automatic outlining and indenting, use the `Markdown All in One` extension.
 
-Why "Loam"? Loam is a combination of "Logseq" + "Foam". Also, loam in the real world is rich soul that is good for growing plants. My hope is that Loam will be a good foundation for your knowledge garden, and help you grow your thoughts.
+Why "Loam"? Loam is a combination of "Logseq" + "Foam". Also, loam in the real world is rich soil that is good for growing plants. My hope is that Loam will be a good foundation for your knowledge garden, and help you grow your thoughts.
 
 
 ### Features to Implement
