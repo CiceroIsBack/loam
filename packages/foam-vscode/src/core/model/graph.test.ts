@@ -149,7 +149,7 @@ describe('Graph', () => {
       text: '## Section 1\n\n## Section 2',
     });
     const ws = createTestWorkspace().set(noteA).set(noteB);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getBacklinks(noteB.uri).length).toEqual(1);
   });

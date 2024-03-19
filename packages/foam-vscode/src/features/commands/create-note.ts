@@ -10,7 +10,7 @@ import { Resolver } from '../../services/variable-resolver';
 import { asAbsoluteWorkspaceUri, fileExists } from '../../services/editor';
 import { isSome } from '../../core/utils';
 import { CommandDescriptor } from '../../utils/commands';
-import { Foam } from '../../core/model/foam';
+import { Loam } from '../../core/model/loam';
 import { Location } from '../../core/model/location';
 import { MarkdownLink } from '../../core/services/markdown-link';
 import { ResourceLink } from '../../core/model/note';
@@ -18,12 +18,12 @@ import { toVsCodeRange, toVsCodeUri } from '../../utils/vsc-utils';
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
   context.subscriptions.push(
     vscode.commands.registerCommand(CREATE_NOTE_COMMAND.command, args =>
-      createNote(args, foam)
+      createNote(args, loam)
     )
   );
 }
@@ -52,11 +52,11 @@ interface CreateNoteArgs {
    */
   variables?: { [key: string]: string };
   /**
-   * The date used to resolve the FOAM_DATE_* variables. in YYYY-MM-DD format
+   * The date used to resolve the LOAM_DATE_* variables. in YYYY-MM-DD format
    */
   date?: string;
   /**
-   * The title of the note (translates into the FOAM_TITLE variable)
+   * The title of the note (translates into the LOAM_TITLE variable)
    */
   title?: string;
   /**
@@ -78,11 +78,11 @@ interface CreateNoteArgs {
     | 'cancel';
 }
 
-const DEFAULT_NEW_NOTE_TEXT = `# \${FOAM_TITLE}
+const DEFAULT_NEW_NOTE_TEXT = `# \${LOAM_TITLE}
 
-\${FOAM_SELECTED_TEXT}`;
+\${LOAM_SELECTED_TEXT}`;
 
-export async function createNote(args: CreateNoteArgs, foam: Foam) {
+export async function createNote(args: CreateNoteArgs, loam: Loam) {
   args = args ?? {};
   const date = isSome(args.date) ? new Date(Date.parse(args.date)) : new Date();
   const resolver = new Resolver(
@@ -90,7 +90,7 @@ export async function createNote(args: CreateNoteArgs, foam: Foam) {
     date
   );
   if (args.title) {
-    resolver.define('FOAM_TITLE', args.title);
+    resolver.define('LOAM_TITLE', args.title);
   }
   const text = args.text ?? DEFAULT_NEW_NOTE_TEXT;
   const noteUri = args.notePath && URI.file(args.notePath);
@@ -125,7 +125,7 @@ export async function createNote(args: CreateNoteArgs, foam: Foam) {
       );
 
   if (args.sourceLink) {
-    const identifier = foam.workspace.getIdentifier(createdNote.uri);
+    const identifier = loam.workspace.getIdentifier(createdNote.uri);
     const edit = MarkdownLink.createUpdateLinkEdit(args.sourceLink.data, {
       target: identifier,
     });

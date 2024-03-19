@@ -119,7 +119,7 @@ export async function activate(context: ExtensionContext) {
           return r.extendMarkdownIt ? r.extendMarkdownIt(acc) : acc;
         }, md);
       },
-      foam,
+      loam,
     };
   } catch (e) {
     Logger.error('An error occurred while bootstrapping Loam', e);
