@@ -1,4 +1,4 @@
-# Foam File Format
+6# Foam File Format
 
 This file is an example of a valid Foam file. Essentially it's just a markdown file with a bit of additional support for MediaWiki-style `[[wikilinks]]`.
 

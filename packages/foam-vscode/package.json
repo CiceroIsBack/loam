@@ -446,6 +446,10 @@
       {
         "command": "loam-vscode.completion-move-cursor",
         "title": "Loam: Move cursor after completion"
+      },
+      {
+        "command": "loam-vscode.peek-backlinks.show",
+        "title": "Loam: Peek all backlinks"
       }
     ],
     "configuration": {
