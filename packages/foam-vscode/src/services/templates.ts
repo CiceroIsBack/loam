@@ -10,7 +10,7 @@ import {
 } from 'vscode';
 import { focusNote, isNone } from '../utils';
 import { fromVsCodeUri, toVsCodeUri } from '../utils/vsc-utils';
-import { extractFoamTemplateFrontmatterMetadata } from '../utils/template-frontmatter-parser';
+import { extractLoamTemplateFrontmatterMetadata } from '../utils/template-frontmatter-parser';
 import { UserCancelledOperation } from './errors';
 import {
   asAbsoluteWorkspaceUri,
@@ -19,19 +19,20 @@ import {
   fileExists,
   findSelectionContent,
   getCurrentEditorDirectory,
+  getCurrentWorkspaceDirectory,
   readFile,
   replaceSelection,
 } from './editor';
 import { Resolver } from './variable-resolver';
 import dateFormat from 'dateformat';
-import { getFoamVsCodeConfig } from './config';
+import { getLoamVsCodeConfig } from './config';
 
 /**
  * The templates directory
  */
 export const getTemplatesDir = () =>
   fromVsCodeUri(workspace.workspaceFolders[0].uri).joinPath(
-    '.foam',
+    '.loam',
     'templates'
   );
 
@@ -51,7 +52,7 @@ const WIKILINK_DEFAULT_TEMPLATE_TEXT = `# $\{1:$FOAM_TITLE}\n\n$0`;
 
 const TEMPLATE_CONTENT = `# \${1:$TM_FILENAME_BASE}
 
-Welcome to Foam templates.
+Welcome to Loam templates.
 
 What you see in the heading is a placeholder
 - it allows you to quickly move through positions of the new note by pressing TAB, e.g. to easily fill fields
@@ -65,20 +66,20 @@ For a full list of features see [the VS Code snippets page](https://code.visuals
 ## To get started
 
 1. edit this file to create the shape new notes from this template will look like
-2. create a note from this template by running the \`Foam: Create New Note From Template\` command
+2. create a note from this template by running the \`Loam: Create New Note From Template\` command
 `;
 
 export async function getTemplateMetadata(
   templateUri: URI
 ): Promise<Map<string, string>> {
   const contents = (await readFile(templateUri)) ?? '';
-  const [templateMetadata] = extractFoamTemplateFrontmatterMetadata(contents);
+  const [templateMetadata] = extractLoamTemplateFrontmatterMetadata(contents);
   return templateMetadata;
 }
 
 export async function getTemplates(): Promise<URI[]> {
   const templates = await workspace
-    .findFiles('.foam/templates/**.md', null)
+    .findFiles('.loam/templates/**.md', null)
     .then(v => v.map(uri => fromVsCodeUri(uri)));
   return templates;
 }
@@ -94,12 +95,12 @@ export async function getTemplateInfo(
     templateText
   );
 
-  const [templateMetadata, templateWithFoamFrontmatterRemoved] =
-    extractFoamTemplateFrontmatterMetadata(templateWithResolvedVariables);
+  const [templateMetadata, templateWithLoamFrontmatterRemoved] =
+    extractLoamTemplateFrontmatterMetadata(templateWithResolvedVariables);
 
   return {
     metadata: templateMetadata,
-    text: templateWithFoamFrontmatterRemoved,
+    text: templateWithLoamFrontmatterRemoved,
   };
 }
 
@@ -113,6 +114,7 @@ export type OnFileExistStrategy =
 export type OnRelativePathStrategy =
   | 'resolve-from-root'
   | 'resolve-from-current-dir'
+  | 'resolve-from-pages-dir'
   | 'cancel'
   | 'ask'
   | ((filePath: URI) => Promise<URI | undefined>);
@@ -174,7 +176,7 @@ async function offerToCreateTemplate(): Promise<void> {
       'No templates available. Would you like to create one instead?',
   });
   if (response === 'Yes') {
-    commands.executeCommand('foam-vscode.create-new-template');
+    commands.executeCommand('loam-vscode.create-new-template');
     return;
   }
 }
@@ -211,10 +213,17 @@ const createFnForOnRelativePathStrategy =
   async (existingFile: URI) => {
     // Get the default from the configuration
     if (isNone(onRelativePath)) {
-      onRelativePath =
-        getFoamVsCodeConfig('files.newNotePath') === 'root'
-          ? 'resolve-from-root'
-          : 'resolve-from-current-dir';
+      switch (getLoamVsCodeConfig('files.newNotePath')) {
+        case 'root':
+          onRelativePath = 'resolve-from-root';
+          break;
+        case 'currentDir':
+          onRelativePath = 'resolve-from-current-dir';
+          break;
+        case 'pagesDir':
+          onRelativePath = 'resolve-from-pages-dir';
+          break;
+      }
     }
 
     if (typeof onRelativePath === 'function') {
@@ -222,6 +231,10 @@ const createFnForOnRelativePathStrategy =
     }
 
     switch (onRelativePath) {
+      case 'resolve-from-pages-dir':
+        return getCurrentWorkspaceDirectory().joinPath(
+          `pages/${existingFile.path}`
+        );
       case 'resolve-from-current-dir':
         return getCurrentEditorDirectory().joinPath(existingFile.path);
       case 'resolve-from-root':
@@ -309,7 +322,7 @@ export const NoteFactory = {
       if (replaceSelectionWithLink && selectedContent !== undefined) {
         const newNoteTitle = newFilePath.getName();
 
-        // This should really use the FoamWorkspace.getIdentifier() function,
+        // This should really use the LoamWorkspace.getIdentifier() function,
         // but for simplicity we just use newNoteTitle
         await replaceSelection(
           selectedContent.document,

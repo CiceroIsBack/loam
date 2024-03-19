@@ -4,7 +4,7 @@ import { removeBrackets } from '../../utils';
 export default async function activate(context: ExtensionContext) {
   context.subscriptions.push(
     commands.registerCommand(
-      'foam-vscode.copy-without-brackets',
+      'loam-vscode.copy-without-brackets',
       copyWithoutBrackets
     )
   );

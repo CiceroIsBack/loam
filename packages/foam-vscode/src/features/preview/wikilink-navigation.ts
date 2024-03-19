@@ -3,7 +3,7 @@
 import markdownItRegex from 'markdown-it-regex';
 import * as vscode from 'vscode';
 import { isNone } from '../../utils';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { LoamWorkspace } from '../../core/model/workspace';
 import { Logger } from '../../core/utils/log';
 import { toVsCodeUri } from '../../utils/vsc-utils';
 import { MarkdownLink } from '../../core/services/markdown-link';
@@ -13,7 +13,7 @@ import { toSlug } from '../../utils/slug';
 
 export const markdownItWikilinkNavigation = (
   md: markdownit,
-  workspace: FoamWorkspace
+  workspace: LoamWorkspace
 ) => {
   return md.use(markdownItRegex, {
     name: 'connect-wikilinks',
@@ -65,9 +65,9 @@ export const markdownItWikilinkNavigation = (
 };
 
 const getPlaceholderLink = (content: string) =>
-  `<a class='foam-placeholder-link' title="Link to non-existing resource" href="javascript:void(0);">${content}</a>`;
+  `<a class='loam-placeholder-link' title="Link to non-existing resource" href="javascript:void(0);">${content}</a>`;
 
 const getResourceLink = (title: string, link: string, label: string) =>
-  `<a class='foam-note-link' title='${title}' href='${link}' data-href='${link}'>${label}</a>`;
+  `<a class='loam-note-link' title='${title}' href='${link}' data-href='${link}'>${label}</a>`;
 
 export default markdownItWikilinkNavigation;

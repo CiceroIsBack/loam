@@ -8,7 +8,7 @@ import {
   CompletionTriggerKind,
 } from 'vscode';
 import { getDailyNoteFileName } from '../dated-notes';
-import { getFoamVsCodeConfig } from '../services/config';
+import { getLoamVsCodeConfig } from '../services/config';
 
 export default async function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -84,9 +84,9 @@ const createCompletionItem = ({ snippet, date, detail }: DateSnippet) => {
   );
   completionItem.insertText = getDailyNoteLink(date);
   completionItem.detail = `${completionItem.insertText} - ${detail}`;
-  if (getFoamVsCodeConfig('dateSnippets.afterCompletion') !== 'noop') {
+  if (getLoamVsCodeConfig('dateSnippets.afterCompletion') !== 'noop') {
     completionItem.command = {
-      command: 'foam-vscode.open-dated-note',
+      command: 'loam-vscode.open-dated-note',
       title: 'Open a note for the given date',
       arguments: [date],
     };
@@ -95,9 +95,9 @@ const createCompletionItem = ({ snippet, date, detail }: DateSnippet) => {
 };
 
 const getDailyNoteLink = (date: Date) => {
-  const foamExtension = getFoamVsCodeConfig('openDailyNote.fileExtension');
+  const loamExtension = getLoamVsCodeConfig('openDailyNote.fileExtension');
   const name = getDailyNoteFileName(date);
-  return `[[${name.replace(`.${foamExtension}`, '')}]]`;
+  return `[[${name.replace(`.${loamExtension}`, '')}]]`;
 };
 
 const snippetFactories: (() => DateSnippet)[] = [
@@ -192,7 +192,7 @@ const completions: CompletionItemProvider = {
   provideCompletionItems: (document, position, _token, _context) => {
     if (_context.triggerKind === CompletionTriggerKind.Invoke) {
       // if completion was triggered without trigger character then we return [] to fallback
-      // to vscode word-based suggestions (see https://github.com/foambubble/foam/pull/417)
+      // to vscode word-based suggestions (see https://github.com/loambubble/loam/pull/417)
       return [];
     }
     const range = document.getWordRangeAtPosition(position, /\S+/);
@@ -212,7 +212,7 @@ export const datesCompletionProvider: CompletionItemProvider = {
   provideCompletionItems: (document, position, _token, context) => {
     if (context.triggerKind === CompletionTriggerKind.Invoke) {
       // if completion was triggered without trigger character then we return [] to fallback
-      // to vscode word-based suggestions (see https://github.com/foambubble/foam/pull/417)
+      // to vscode word-based suggestions (see https://github.com/loambubble/loam/pull/417)
       return [];
     }
 

@@ -3,7 +3,7 @@ import { readFileFromFs, TEST_DATA_DIR } from '../../test/test-utils';
 import { MarkdownResourceProvider } from '../services/markdown-provider';
 import { Resource } from '../model/note';
 import { Range } from '../model/range';
-import { FoamWorkspace } from '../model/workspace';
+import { LoamWorkspace } from '../model/workspace';
 import { Logger } from '../utils/log';
 import detectNewline from 'detect-newline';
 import { createMarkdownParser } from '../services/markdown-parser';
@@ -12,7 +12,7 @@ import { FileDataStore } from '../../test/test-datastore';
 Logger.setLevel('error');
 
 describe('generateHeadings', () => {
-  let _workspace: FoamWorkspace;
+  let _workspace: LoamWorkspace;
   const findBySlug = (slug: string): Resource => {
     return _workspace
       .list()
@@ -26,7 +26,7 @@ describe('generateHeadings', () => {
     );
     const parser = createMarkdownParser();
     const mdProvider = new MarkdownResourceProvider(dataStore, parser);
-    _workspace = await FoamWorkspace.fromProviders([mdProvider], dataStore);
+    _workspace = await LoamWorkspace.fromProviders([mdProvider], dataStore);
   });
 
   it.skip('should add heading to a file that does not have them', async () => {

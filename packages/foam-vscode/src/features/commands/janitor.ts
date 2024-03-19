@@ -11,7 +11,7 @@ import {
   toVsCodeRange,
   toVsCodeUri,
 } from '../../utils/vsc-utils';
-import { Foam } from '../../core/model/foam';
+import { Loam } from '../../core/model/loam';
 import { Resource } from '../../core/model/note';
 import { generateHeading, generateLinkReferences } from '../../core/janitor';
 import { Range } from '../../core/model/range';
@@ -20,53 +20,53 @@ import { TextEdit } from '../../core/services/text-edit';
 
 export default async function activate(
   context: ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
   context.subscriptions.push(
-    commands.registerCommand('foam-vscode.janitor', async () =>
-      janitor(await foamPromise)
+    commands.registerCommand('loam-vscode.janitor', async () =>
+      janitor(await loamPromise)
     )
   );
 }
 
-async function janitor(foam: Foam) {
+async function janitor(loam: Loam) {
   try {
-    const noOfFiles = foam.workspace.list().filter(Boolean).length;
+    const noOfFiles = loam.workspace.list().filter(Boolean).length;
 
     if (noOfFiles === 0) {
       return window.showInformationMessage(
-        "Foam Janitor didn't find any notes to clean up."
+        "Loam Janitor didn't find any notes to clean up."
       );
     }
 
     const outcome = await window.withProgress(
       {
         location: ProgressLocation.Notification,
-        title: `Running Foam Janitor across ${noOfFiles} files!`,
+        title: `Running Loam Janitor across ${noOfFiles} files!`,
       },
-      () => runJanitor(foam)
+      () => runJanitor(loam)
     );
 
     if (!outcome.changedAnyFiles) {
       window.showInformationMessage(
-        `Foam Janitor checked ${noOfFiles} files, and found nothing to clean up!`
+        `Loam Janitor checked ${noOfFiles} files, and found nothing to clean up!`
       );
     } else {
       window.showInformationMessage(
-        `Foam Janitor checked ${noOfFiles} files and updated ${outcome.updatedDefinitionListCount} out-of-date definition lists and added ${outcome.updatedHeadingCount} missing headings. Please check the changes before committing them into version control!`
+        `Loam Janitor checked ${noOfFiles} files and updated ${outcome.updatedDefinitionListCount} out-of-date definition lists and added ${outcome.updatedHeadingCount} missing headings. Please check the changes before committing them into version control!`
       );
     }
   } catch (e) {
     window.showErrorMessage(
-      `Foam Janitor attempted to clean your workspace but ran into an error. Please check that we didn't break anything before committing any changes to version control, and pass the following error message to the Foam team on GitHub issues:
+      `Loam Janitor attempted to clean your workspace but ran into an error. Please check that we didn't break anything before committing any changes to version control, and pass the following error message to the Loam team on GitHub issues:
     ${e.message}
     ${e.stack}`
     );
   }
 }
 
-async function runJanitor(foam: Foam) {
-  const notes: Resource[] = foam.workspace
+async function runJanitor(loam: Loam) {
+  const notes: Resource[] = loam.workspace
     .list()
     .filter(r => r.uri.isMarkdown());
 
@@ -97,7 +97,7 @@ async function runJanitor(foam: Foam) {
   // Apply Text Edits to Non Dirty Notes using fs module just like CLI
 
   const fileWritePromises = nonDirtyNotes.map(async note => {
-    const noteText = await foam.workspace.readAsMarkdown(note.uri);
+    const noteText = await loam.workspace.readAsMarkdown(note.uri);
     const noteEol = detectNewline(noteText);
     const heading = await generateHeading(note, noteText, noteEol);
     if (heading) {
@@ -111,7 +111,7 @@ async function runJanitor(foam: Foam) {
             note,
             noteText,
             noteEol,
-            foam.workspace,
+            loam.workspace,
             wikilinkSetting === 'withExtensions'
           );
     if (definitions) {
@@ -153,7 +153,7 @@ async function runJanitor(foam: Foam) {
             note,
             noteText,
             eol,
-            foam.workspace,
+            loam.workspace,
             wikilinkSetting === 'withExtensions'
           );
 

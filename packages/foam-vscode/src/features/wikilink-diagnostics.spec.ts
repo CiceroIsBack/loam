@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { createMarkdownParser } from '../core/services/markdown-parser';
-import { FoamWorkspace } from '../core/model/workspace';
+import { LoamWorkspace } from '../core/model/workspace';
 import {
   cleanWorkspace,
   closeEditors,
@@ -20,13 +20,13 @@ describe('Wikilink diagnostics', () => {
     const fileB = await createFile(`This is linked to [[${fileA.name}]]`);
 
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace()
+    const ws = new LoamWorkspace()
       .set(parser.parse(fileA.uri, fileA.content))
       .set(parser.parse(fileB.uri, fileB.content));
 
     await showInEditor(fileB.uri);
 
-    const collection = vscode.languages.createDiagnosticCollection('foam-test');
+    const collection = vscode.languages.createDiagnosticCollection('loam-test');
     updateDiagnostics(
       ws,
       parser,
@@ -52,14 +52,14 @@ describe('Wikilink diagnostics', () => {
     ]);
 
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace()
+    const ws = new LoamWorkspace()
       .set(parser.parse(fileA.uri, fileA.content))
       .set(parser.parse(fileB.uri, fileB.content))
       .set(parser.parse(fileC.uri, fileC.content));
 
     await showInEditor(fileC.uri);
 
-    const collection = vscode.languages.createDiagnosticCollection('foam-test');
+    const collection = vscode.languages.createDiagnosticCollection('loam-test');
     updateDiagnostics(
       ws,
       parser,
@@ -82,14 +82,14 @@ describe('Wikilink diagnostics', () => {
     const fileC = await createFile('Link to [[todo]]');
 
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace()
+    const ws = new LoamWorkspace()
       .set(parser.parse(fileA.uri, fileA.content))
       .set(parser.parse(fileB.uri, fileB.content))
       .set(parser.parse(fileC.uri, fileC.content));
 
     await showInEditor(fileC.uri);
 
-    const collection = vscode.languages.createDiagnosticCollection('foam-test');
+    const collection = vscode.languages.createDiagnosticCollection('loam-test');
     updateDiagnostics(
       ws,
       parser,
@@ -111,11 +111,11 @@ describe('Section diagnostics', () => {
   it('should show nothing on placeholders', async () => {
     const file = await createFile('Link to [[placeholder]]');
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace().set(parser.parse(file.uri, file.content));
+    const ws = new LoamWorkspace().set(parser.parse(file.uri, file.content));
 
     await showInEditor(file.uri);
 
-    const collection = vscode.languages.createDiagnosticCollection('foam-test');
+    const collection = vscode.languages.createDiagnosticCollection('loam-test');
     updateDiagnostics(
       ws,
       parser,
@@ -137,13 +137,13 @@ Content of section 2
     );
     const fileB = await createFile('Link to [[my-file#Section 1]]');
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace()
+    const ws = new LoamWorkspace()
       .set(parser.parse(fileA.uri, fileA.content))
       .set(parser.parse(fileB.uri, fileB.content));
 
     await showInEditor(fileB.uri);
 
-    const collection = vscode.languages.createDiagnosticCollection('foam-test');
+    const collection = vscode.languages.createDiagnosticCollection('loam-test');
     updateDiagnostics(
       ws,
       parser,
@@ -164,13 +164,13 @@ Content of section 2
     );
     const fileB = await createFile(`Link to [[${fileA.name}#Section 10]]`);
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace()
+    const ws = new LoamWorkspace()
       .set(parser.parse(fileA.uri, fileA.content))
       .set(parser.parse(fileB.uri, fileB.content));
 
     await showInEditor(fileB.uri);
 
-    const collection = vscode.languages.createDiagnosticCollection('foam-test');
+    const collection = vscode.languages.createDiagnosticCollection('loam-test');
     updateDiagnostics(
       ws,
       parser,

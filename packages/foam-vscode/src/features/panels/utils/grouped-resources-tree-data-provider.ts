@@ -14,13 +14,13 @@ type GroupedResourceTreeItem = UriTreeItem | FolderTreeItem<URI>;
 
 /**
  * Provides the ability to expose a TreeDataExplorerView in VSCode. This class will
- * iterate over each Resource in the FoamWorkspace, call the provided filter predicate, and
+ * iterate over each Resource in the LoamWorkspace, call the provided filter predicate, and
  * display the Resources.
  *
  * **NOTE**: In order for this provider to correctly function, you must define the following command in the package.json file:
  * ```
- * foam-vscode.views.${providerId}.group-by-folder
- * foam-vscode.views.${providerId}.group-off
+ * loam-vscode.views.${providerId}.group-by-folder
+ * loam-vscode.views.${providerId}.group-off
  * ```
  * Where `providerId` is the same string provided to the constructor.
  * @export
@@ -33,7 +33,7 @@ export abstract class GroupedResourcesTreeDataProvider extends FolderTreeProvide
 > {
   public groupBy = new ContextMemento<'off' | 'folder'>(
     this.state,
-    `foam-vscode.views.${this.providerId}.group-by`,
+    `loam-vscode.views.${this.providerId}.group-by`,
     'folder'
   );
 
@@ -41,8 +41,8 @@ export abstract class GroupedResourcesTreeDataProvider extends FolderTreeProvide
    * Creates an instance of GroupedResourcesTreeDataProvider.
    * **NOTE**: In order for this provider to correctly function, you must define the following command in the package.json file:
    * ```
-   * foam-vscode.views.${this.providerId}.group-by:folder
-   * foam-vscode.views.${this.providerId}.group-by:off
+   * loam-vscode.views.${this.providerId}.group-by:folder
+   * loam-vscode.views.${this.providerId}.group-by:off
    * ```
    * Where `providerId` is the same string provided to this constructor.
    *
@@ -59,14 +59,14 @@ export abstract class GroupedResourcesTreeDataProvider extends FolderTreeProvide
     super();
     this.disposables.push(
       vscode.commands.registerCommand(
-        `foam-vscode.views.${this.providerId}.group-by:folder`,
+        `loam-vscode.views.${this.providerId}.group-by:folder`,
         () => {
           this.groupBy.update('folder');
           this.refresh();
         }
       ),
       vscode.commands.registerCommand(
-        `foam-vscode.views.${this.providerId}.group-by:off`,
+        `loam-vscode.views.${this.providerId}.group-by:off`,
         () => {
           this.groupBy.update('off');
           this.refresh();

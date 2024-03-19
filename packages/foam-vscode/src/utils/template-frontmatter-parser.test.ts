@@ -1,18 +1,18 @@
 import {
-  extractFoamTemplateFrontmatterMetadata,
-  removeFoamMetadata,
+  extractLoamTemplateFrontmatterMetadata,
+  removeLoamMetadata,
 } from './template-frontmatter-parser';
 
-describe('extractFoamTemplateFrontmatterMetadata', () => {
+describe('extractLoamTemplateFrontmatterMetadata', () => {
   test('Returns an empty object if there is not frontmatter', () => {
     const input = `# $FOAM_TITLE`;
     const expectedMetadata = new Map<string, string>();
     const expected = [expectedMetadata, input];
-    const result = extractFoamTemplateFrontmatterMetadata(input);
+    const result = extractLoamTemplateFrontmatterMetadata(input);
     expect(result).toEqual(expected);
   });
 
-  test('Returns an empty object if `foam_template` is not used', () => {
+  test('Returns an empty object if `loam_template` is not used', () => {
     const input = `---
 foo: bar
 ---
@@ -22,15 +22,15 @@ foo: bar
 
     const expectedMetadata = new Map<string, string>();
     const expected = [expectedMetadata, input];
-    const result = extractFoamTemplateFrontmatterMetadata(input);
+    const result = extractLoamTemplateFrontmatterMetadata(input);
     expect(result).toEqual(expected);
   });
 
-  test('Returns an empty object if foam_template is not a YAML mapping', () => {
+  test('Returns an empty object if loam_template is not a YAML mapping', () => {
     const input = `---json
 {
   "foo": "bar",
-  "foam_template": 4
+  "loam_template": 4
 }
 ---
 
@@ -39,7 +39,7 @@ foo: bar
 
     const expectedMetadata = new Map<string, string>();
     const expected = [expectedMetadata, input];
-    const result = extractFoamTemplateFrontmatterMetadata(input);
+    const result = extractLoamTemplateFrontmatterMetadata(input);
     expect(result).toEqual(expected);
   });
 
@@ -47,7 +47,7 @@ foo: bar
     const input = `---json
 {
   "foo": "bar",
-  "foam_template": {
+  "loam_template": {
     "filepath": "journal/$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE_$FOAM_TITLE.md"
   }
 }
@@ -58,13 +58,13 @@ foo: bar
 
     const expectedMetadata = new Map<string, string>();
     const expected = [expectedMetadata, input];
-    const result = extractFoamTemplateFrontmatterMetadata(input);
+    const result = extractLoamTemplateFrontmatterMetadata(input);
     expect(result).toEqual(expected);
   });
 
-  test('Returns the `foam_template` metadata when it is used in its own frontmatter block', () => {
+  test('Returns the `loam_template` metadata when it is used in its own frontmatter block', () => {
     const input = `---
-foam_template:
+loam_template:
   name: My Note Template
   description: This is my note template
   filepath: journal/$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE_$FOAM_TITLE.md
@@ -85,13 +85,13 @@ foam_template:
       'journal/$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE_$FOAM_TITLE.md'
     );
     const expected = [expectedMetadata, output];
-    const result = extractFoamTemplateFrontmatterMetadata(input);
+    const result = extractLoamTemplateFrontmatterMetadata(input);
     expect(result).toEqual(expected);
   });
 
-  test('Returns the `foam_template` metadata when it is used in its own frontmatter block (and there is another frontmatter block after)', () => {
+  test('Returns the `loam_template` metadata when it is used in its own frontmatter block (and there is another frontmatter block after)', () => {
     const input = `---
-foam_template:
+loam_template:
   filepath: journal/$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE_$FOAM_TITLE.md
   description: This is my note template
   name: My Note Template
@@ -129,14 +129,14 @@ more_metadata: *info
       'journal/$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE_$FOAM_TITLE.md'
     );
     const expected = [expectedMetadata, output];
-    const result = extractFoamTemplateFrontmatterMetadata(input);
+    const result = extractLoamTemplateFrontmatterMetadata(input);
     expect(result).toEqual(expected);
   });
 
-  test('Returns the `foam_template` metadata when it is used in a shared frontmatter block', () => {
+  test('Returns the `loam_template` metadata when it is used in a shared frontmatter block', () => {
     const input = `---
 foo: bar
-foam_template:
+loam_template:
   name: My Note Template
   filepath: journal/$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE_$FOAM_TITLE.md
   description: This is my note template
@@ -168,16 +168,16 @@ more_metadata: *info
       'journal/$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE_$FOAM_TITLE.md'
     );
     const expected = [expectedMetadata, output];
-    const result = extractFoamTemplateFrontmatterMetadata(input);
+    const result = extractLoamTemplateFrontmatterMetadata(input);
     expect(result).toEqual(expected);
   });
 });
 
-describe('removeFoamMetadata', () => {
-  test('Removes Foam specific frontmatter without messing up non-Foam frontmatter', () => {
+describe('removeLoamMetadata', () => {
+  test('Removes Loam specific frontmatter without messing up non-Loam frontmatter', () => {
     const input = `---
 foo: bar
-foam_template: &foam_template # A YAML comment
+loam_template: &loam_template # A YAML comment
   description: This is my note template
   filepath: journal/$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE_$FOAM_TITLE.md # A YAML comment
   name: My Note Template
@@ -201,7 +201,7 @@ more_metadata: *info
 
 # $FOAM_TITLE`;
 
-    const result = removeFoamMetadata(input);
+    const result = removeLoamMetadata(input);
     expect(result).toEqual(expected);
   });
 });

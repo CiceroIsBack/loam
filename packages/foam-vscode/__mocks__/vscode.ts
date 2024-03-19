@@ -1,6 +1,6 @@
 /*
 Note: this is needed in order to test certain parts
-of functionality of `foam-vscode`
+of functionality of `loam-vscode`
 
 Following the advice from this article:
 https://www.richardkotze.com/coding/unit-test-mock-vs-code-extension-api-jest
@@ -10,7 +10,7 @@ https://github.com/microsoft/vscode-test/issues/37#issuecomment-584744386
 */
 
 const vscode = {
-    // Add values and methods as needed for tests
+  // Add values and methods as needed for tests
 };
 
 module.exports = vscode;

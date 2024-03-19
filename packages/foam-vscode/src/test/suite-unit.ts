@@ -1,6 +1,6 @@
 // Based on https://github.com/svsool/vscode-memo/blob/master/src/test/testRunner.ts
 /**
- * We use the following convention in Foam:
+ * We use the following convention in Loam:
  * - *.test.ts are unit tests
  *   they might still rely on vscode API and hence will be run in this environment, but
  *   are fundamentally about testing functions in isolation

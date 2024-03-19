@@ -2,9 +2,9 @@
 
 import { workspace, ExtensionContext, window, commands } from 'vscode';
 import { MarkdownResourceProvider } from './core/services/markdown-provider';
-import { bootstrap } from './core/model/foam';
+import { bootstrap } from './core/model/loam';
 import { Logger } from './core/utils/log';
-
+import * as vscode from 'vscode';
 import { features } from './features';
 import { VsCodeOutputLogger, exposeLogger } from './services/logging';
 import {
@@ -17,7 +17,7 @@ import { VsCodeWatcher } from './services/watcher';
 import { createMarkdownParser } from './core/services/markdown-parser';
 import VsCodeBasedParserCache from './services/cache';
 import { createMatcherAndDataStore } from './services/editor';
-import { getFoamVsCodeConfig } from './services/config';
+import { getLoamVsCodeConfig } from './services/config';
 
 export async function activate(context: ExtensionContext) {
   const logger = new VsCodeOutputLogger();
@@ -25,14 +25,14 @@ export async function activate(context: ExtensionContext) {
   exposeLogger(context, logger);
 
   try {
-    Logger.info('Starting Foam');
+    Logger.info('Starting Loam');
 
     if (workspace.workspaceFolders === undefined) {
-      Logger.info('No workspace open. Foam will not start');
+      Logger.info('No workspace open. Loam will not start');
       return;
     }
 
-    // Prepare Foam
+    // Prepare Loam
     const excludes = getIgnoredFilesSetting().map(g => g.toString());
     const { matcher, dataStore, excludePatterns } =
       await createMatcherAndDataStore(excludes);
@@ -63,7 +63,7 @@ export async function activate(context: ExtensionContext) {
       attachmentExtConfig
     );
 
-    const foamPromise = bootstrap(
+    const loamPromise = bootstrap(
       matcher,
       watcher,
       dataStore,
@@ -74,37 +74,44 @@ export async function activate(context: ExtensionContext) {
 
     // Load the features
     const featuresPromises = features.map(feature =>
-      feature(context, foamPromise)
+      feature(context, loamPromise)
     );
 
-    const foam = await foamPromise;
-    Logger.info(`Loaded ${foam.workspace.list().length} resources`);
+    const loam = await loamPromise;
+    Logger.info(`Loaded ${loam.workspace.list().length} resources`);
 
     context.subscriptions.push(
-      foam,
+      loam,
       watcher,
       markdownProvider,
       attachmentProvider,
-      commands.registerCommand('foam-vscode.clear-cache', () =>
+      commands.registerCommand('loam-vscode.clear-cache', () =>
         parserCache.clear()
       ),
       workspace.onDidChangeConfiguration(e => {
         if (
           [
-            'foam.files.ignore',
-            'foam.files.attachmentExtensions',
-            'foam.files.noteExtensions',
-            'foam.files.defaultNoteExtension',
+            'loam.files.ignore',
+            'loam.files.attachmentExtensions',
+            'loam.files.noteExtensions',
+            'loam.files.defaultNoteExtension',
           ].some(setting => e.affectsConfiguration(setting))
         ) {
           window.showInformationMessage(
-            'Foam: Reload the window to use the updated settings'
+            'Loam: Reload the window to use the updated settings'
           );
         }
       })
     );
 
     const feats = (await Promise.all(featuresPromises)).filter(r => r != null);
+
+    let config = vscode.workspace.getConfiguration('files');
+    config.update(
+      'exclude',
+      { 'logseq/*': true },
+      vscode.ConfigurationTarget.Workspace
+    );
 
     return {
       extendMarkdownIt: (md: markdownit) => {
@@ -115,9 +122,9 @@ export async function activate(context: ExtensionContext) {
       foam,
     };
   } catch (e) {
-    Logger.error('An error occurred while bootstrapping Foam', e);
+    Logger.error('An error occurred while bootstrapping Loam', e);
     window.showErrorMessage(
-      `An error occurred while bootstrapping Foam. ${e.stack}`
+      `An error occurred while bootstrapping Loam. ${e.stack}`
     );
   }
 }

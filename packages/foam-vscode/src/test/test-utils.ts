@@ -5,7 +5,7 @@ import fs from 'fs';
 import { Logger } from '../core/utils/log';
 import { Range } from '../core/model/range';
 import { URI } from '../core/model/uri';
-import { FoamWorkspace } from '../core/model/workspace';
+import { LoamWorkspace } from '../core/model/workspace';
 import { MarkdownResourceProvider } from '../core/services/markdown-provider';
 import { NoteLinkDefinition, Resource } from '../core/model/note';
 import { createMarkdownParser } from '../core/services/markdown-parser';
@@ -30,7 +30,7 @@ const position = Range.create(0, 0, 0, 100);
 export const strToUri = URI.file;
 
 export const createTestWorkspace = () => {
-  const workspace = new FoamWorkspace();
+  const workspace = new LoamWorkspace();
   const parser = createMarkdownParser();
   const provider = new MarkdownResourceProvider(
     {

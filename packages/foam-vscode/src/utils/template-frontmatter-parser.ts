@@ -1,6 +1,6 @@
 import matter from 'gray-matter';
 
-export function extractFoamTemplateFrontmatterMetadata(
+export function extractLoamTemplateFrontmatterMetadata(
   contents: string
 ): [Map<string, string>, string] {
   // Need to pass in empty options object, in order to bust a cache
@@ -16,21 +16,21 @@ export function extractFoamTemplateFrontmatterMetadata(
 
   const frontmatter = parsed.data;
   const frontmatterKeys = Object.keys(frontmatter);
-  const foamMetadata = frontmatter['foam_template'];
+  const loamMetadata = frontmatter['loam_template'];
 
-  if (typeof foamMetadata !== 'object') {
+  if (typeof loamMetadata !== 'object') {
     return [metadata, contents];
   }
 
-  const containsFoam = foamMetadata !== undefined;
-  const onlyFoam = containsFoam && frontmatterKeys.length === 1;
+  const containsLoam = loamMetadata !== undefined;
+  const onlyLoam = containsLoam && frontmatterKeys.length === 1;
   metadata = new Map<string, string>(
-    Object.entries((foamMetadata as object) || {})
+    Object.entries((loamMetadata as object) || {})
   );
 
   let newContents = contents;
-  if (containsFoam) {
-    if (onlyFoam) {
+  if (containsLoam) {
+    if (onlyLoam) {
       // We'll remove the entire frontmatter block
       newContents = parsed.content;
 
@@ -41,17 +41,17 @@ export function extractFoamTemplateFrontmatterMetadata(
         newContents = newContents.trimStart();
       }
     } else {
-      // We'll remove only the Foam bits
-      newContents = removeFoamMetadata(contents);
+      // We'll remove only the Loam bits
+      newContents = removeLoamMetadata(contents);
     }
   }
 
   return [metadata, newContents];
 }
 
-export function removeFoamMetadata(contents: string) {
+export function removeLoamMetadata(contents: string) {
   return contents.replace(
-    /^\s*foam_template:.*?\n(?:\s*(?:filepath|name|description):.*\n)+/gm,
+    /^\s*loam_template:.*?\n(?:\s*(?:filepath|name|description):.*\n)+/gm,
     ''
   );
 }

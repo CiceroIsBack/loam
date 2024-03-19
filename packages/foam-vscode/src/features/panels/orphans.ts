@@ -1,33 +1,33 @@
 import * as vscode from 'vscode';
-import { Foam } from '../../core/model/foam';
+import { Loam } from '../../core/model/loam';
 import { createMatcherAndDataStore } from '../../services/editor';
 import { getAttachmentsExtensions, getOrphansConfig } from '../../settings';
 import { GroupedResourcesTreeDataProvider } from './utils/grouped-resources-tree-data-provider';
 import { ResourceTreeItem, UriTreeItem } from './utils/tree-view-utils';
 import { IMatcher } from '../../core/services/datastore';
-import { FoamWorkspace } from '../../core/model/workspace';
-import { FoamGraph } from '../../core/model/graph';
+import { LoamWorkspace } from '../../core/model/workspace';
+import { LoamGraph } from '../../core/model/graph';
 import { URI } from '../../core/model/uri';
 import { imageExtensions } from '../../core/services/attachment-provider';
 
 const EXCLUDE_TYPES = ['image', 'attachment'];
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
 
   const { matcher } = await createMatcherAndDataStore(
     getOrphansConfig().exclude
   );
   const provider = new OrphanTreeView(
     context.globalState,
-    foam.workspace,
-    foam.graph,
+    loam.workspace,
+    loam.graph,
     matcher
   );
 
-  const treeView = vscode.window.createTreeView('foam-vscode.orphans', {
+  const treeView = vscode.window.createTreeView('loam-vscode.orphans', {
     treeDataProvider: provider,
     showCollapseAll: true,
   });
@@ -36,10 +36,10 @@ export default async function activate(
   treeView.title = baseTitle + ` (${provider.nValues})`;
 
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('foam-vscode.orphans', provider),
+    vscode.window.registerTreeDataProvider('loam-vscode.orphans', provider),
     provider,
     treeView,
-    foam.graph.onDidUpdate(() => {
+    loam.graph.onDidUpdate(() => {
       provider.refresh();
       treeView.title = baseTitle + ` (${provider.nValues})`;
     })
@@ -49,8 +49,8 @@ export default async function activate(
 export class OrphanTreeView extends GroupedResourcesTreeDataProvider {
   constructor(
     state: vscode.Memento,
-    private workspace: FoamWorkspace,
-    private graph: FoamGraph,
+    private workspace: LoamWorkspace,
+    private graph: LoamGraph,
     matcher: IMatcher
   ) {
     super('orphans', state, matcher);

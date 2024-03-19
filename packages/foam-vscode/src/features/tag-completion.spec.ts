@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { FoamTags } from '../core/model/tags';
-import { FoamWorkspace } from '../core/model/workspace';
+import { LoamTags } from '../core/model/tags';
+import { LoamWorkspace } from '../core/model/workspace';
 import { createTestNote } from '../test/test-utils';
 import {
   cleanWorkspace,
@@ -13,7 +13,7 @@ import { TagCompletionProvider } from './tag-completion';
 
 describe('Tag Completion', () => {
   const root = fromVsCodeUri(vscode.workspace.workspaceFolders[0].uri);
-  const ws = new FoamWorkspace();
+  const ws = new LoamWorkspace();
   ws.set(
     createTestNote({
       root,
@@ -36,7 +36,7 @@ describe('Tag Completion', () => {
         tags: ['primary', 'third'],
       })
     );
-  const foamTags = FoamTags.fromWorkspace(ws);
+  const loamTags = LoamTags.fromWorkspace(ws);
 
   beforeAll(async () => {
     await cleanWorkspace();
@@ -44,7 +44,7 @@ describe('Tag Completion', () => {
 
   afterAll(async () => {
     ws.dispose();
-    foamTags.dispose();
+    loamTags.dispose();
     await cleanWorkspace();
   });
 
@@ -55,56 +55,56 @@ describe('Tag Completion', () => {
   it('should not return any tags for empty documents', async () => {
     const { uri } = await createFile('');
     const { doc } = await showInEditor(uri);
-    const provider = new TagCompletionProvider(foamTags);
+    const provider = new TagCompletionProvider(loamTags);
 
     const tags = await provider.provideCompletionItems(
       doc,
       new vscode.Position(0, 0)
     );
 
-    expect(foamTags.tags.get('primary')).toBeTruthy();
+    expect(loamTags.tags.get('primary')).toBeTruthy();
     expect(tags).toBeNull();
   });
 
   it('should provide a suggestion when typing #prim', async () => {
     const { uri } = await createFile('#prim');
     const { doc } = await showInEditor(uri);
-    const provider = new TagCompletionProvider(foamTags);
+    const provider = new TagCompletionProvider(loamTags);
 
     const tags = await provider.provideCompletionItems(
       doc,
       new vscode.Position(0, 5)
     );
 
-    expect(foamTags.tags.get('primary')).toBeTruthy();
+    expect(loamTags.tags.get('primary')).toBeTruthy();
     expect(tags.items.length).toEqual(3);
   });
 
   it('should not provide suggestions when inside a wikilink', async () => {
     const { uri } = await createFile('[[#prim');
     const { doc } = await showInEditor(uri);
-    const provider = new TagCompletionProvider(foamTags);
+    const provider = new TagCompletionProvider(loamTags);
 
     const tags = await provider.provideCompletionItems(
       doc,
       new vscode.Position(0, 7)
     );
 
-    expect(foamTags.tags.get('primary')).toBeTruthy();
+    expect(loamTags.tags.get('primary')).toBeTruthy();
     expect(tags).toBeNull();
   });
 
   it('should not provide suggestions when inside a markdown heading #1182', async () => {
     const { uri } = await createFile('# primary');
     const { doc } = await showInEditor(uri);
-    const provider = new TagCompletionProvider(foamTags);
+    const provider = new TagCompletionProvider(loamTags);
 
     const tags = await provider.provideCompletionItems(
       doc,
       new vscode.Position(0, 7)
     );
 
-    expect(foamTags.tags.get('primary')).toBeTruthy();
+    expect(loamTags.tags.get('primary')).toBeTruthy();
     expect(tags).toBeNull();
   });
 
@@ -114,7 +114,7 @@ describe('Tag Completion', () => {
 
 #`);
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
@@ -126,7 +126,7 @@ describe('Tag Completion', () => {
     it('should provide multiple suggestions when typing # on line with match', async () => {
       const { uri } = await createFile('Here is #my-tag and #');
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
@@ -142,7 +142,7 @@ describe('Tag Completion', () => {
 more text
 `);
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
@@ -156,14 +156,14 @@ more text
 
 # `);
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 2)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags).toBeNull();
     });
 
@@ -172,14 +172,14 @@ more text
 
 #$`);
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 2)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags).toBeNull();
     });
 
@@ -188,28 +188,28 @@ more text
 
 ##`);
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 2)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags).toBeNull();
     });
 
     it('should not provide a suggestion when typing `# ` in a line that already matched', async () => {
       const { uri } = await createFile('here is #primary and now # ');
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(0, 29)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags).toBeNull();
     });
   });
@@ -220,42 +220,42 @@ more text
 created: 2023-01-01
 tags: prim`);
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 10)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags.items.length).toEqual(3);
     });
 
     it('should provide suggestions when on `tags:` in the front-matter with leading `[`', async () => {
       const { uri } = await createFile('---\ntags: [');
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(1, 7)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags.items.length).toEqual(3);
     });
 
     it('should provide suggestions when on `tags:` in the front-matter with `#`', async () => {
       const { uri } = await createFile('---\ntags: #');
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(1, 7)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags.items.length).toEqual(3);
     });
 
@@ -264,14 +264,14 @@ tags: prim`);
         '---\ncreated: 2023-01-01\ntags: secondary, prim'
       );
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 21)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags.items.length).toEqual(3);
     });
 
@@ -280,56 +280,56 @@ tags: prim`);
         '---\ncreated: 2023-01-01\ntags: second, prim'
       );
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 12)
       );
 
-      expect(foamTags.tags.get('secondary')).toBeTruthy();
+      expect(loamTags.tags.get('secondary')).toBeTruthy();
       expect(tags.items.length).toEqual(3);
     });
 
     it('should provide suggestions in `tags:` on separate line with leading space', async () => {
       const { uri } = await createFile('---\ntags: second, prim\n ');
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 1)
       );
 
-      expect(foamTags.tags.get('secondary')).toBeTruthy();
+      expect(loamTags.tags.get('secondary')).toBeTruthy();
       expect(tags.items.length).toEqual(3);
     });
 
     it('should provide suggestions in `tags:` on separate line with leading ` - `', async () => {
       const { uri } = await createFile('---\ntags:\n - ');
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 3)
       );
 
-      expect(foamTags.tags.get('secondary')).toBeTruthy();
+      expect(loamTags.tags.get('secondary')).toBeTruthy();
       expect(tags.items.length).toEqual(3);
     });
 
     it('should not provide suggestions when on non-`tags:` in the front-matter', async () => {
       const { uri } = await createFile('---\ntags: prim\ntitle: prim');
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 11)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags).toBeNull();
     });
 
@@ -338,28 +338,28 @@ tags: prim`);
         '---\ncreated: 2023-01-01\ntags: prim\n---\ncontent\ntags: prim'
       );
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(5, 10)
       );
 
-      expect(foamTags.tags.get('primary')).toBeTruthy();
+      expect(loamTags.tags.get('primary')).toBeTruthy();
       expect(tags).toBeNull();
     });
 
     it('should not provide suggestions in `tags:` on separate line with leading ` -`', async () => {
       const { uri } = await createFile('---\ntags:\n -');
       const { doc } = await showInEditor(uri);
-      const provider = new TagCompletionProvider(foamTags);
+      const provider = new TagCompletionProvider(loamTags);
 
       const tags = await provider.provideCompletionItems(
         doc,
         new vscode.Position(2, 2)
       );
 
-      expect(foamTags.tags.get('secondary')).toBeTruthy();
+      expect(loamTags.tags.get('secondary')).toBeTruthy();
       expect(tags).toBeNull();
     });
   });

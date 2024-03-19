@@ -1,6 +1,6 @@
 import { Resource, ResourceLink } from '../model/note';
 import { URI } from '../model/uri';
-import { FoamWorkspace } from '../model/workspace';
+import { LoamWorkspace } from '../model/workspace';
 import { IDisposable } from '../common/lifecycle';
 import { ResourceProvider } from '../model/provider';
 
@@ -55,7 +55,7 @@ export class AttachmentResourceProvider implements ResourceProvider {
     return asResource(uri);
   }
 
-  resolveLink(w: FoamWorkspace, resource: Resource, l: ResourceLink) {
+  resolveLink(w: LoamWorkspace, resource: Resource, l: ResourceLink) {
     throw new Error('not supported');
     // Silly workaround to make VS Code and es-lint happy
     // eslint-disable-next-line

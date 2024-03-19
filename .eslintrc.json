@@ -31,7 +31,7 @@
   },
   "overrides": [
     {
-      // Restrict usage of fs module outside tests to keep foam compatible with the browser
+      // Restrict usage of fs module outside tests to keep loam compatible with the browser
       "files": ["**/src/**"],
       "excludedFiles": ["**/src/test/**", "**/src/**/*{test,spec}.ts"],
       "rules": {

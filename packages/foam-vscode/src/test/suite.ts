@@ -1,6 +1,6 @@
 // Based on https://github.com/svsool/vscode-memo/blob/master/src/test/testRunner.ts
 /**
- * We use the following convention in Foam:
+ * We use the following convention in Loam:
  * - *.test.ts are unit tests
  *   they might still rely on vscode API and hence will be run in this environment, but
  *   are fundamentally about testing functions in isolation
@@ -49,7 +49,7 @@ export function run(): Promise<void> {
     // clean test workspace
     rf.sync(path.join(testWorkspace, '*'));
     rf.sync(path.join(testWorkspace, '.vscode'));
-    rf.sync(path.join(testWorkspace, '.foam'));
+    rf.sync(path.join(testWorkspace, '.loam'));
     try {
       const { results } = await runCLI(
         {
@@ -76,13 +76,13 @@ export function run(): Promise<void> {
       // }, []);
 
       if (failures.length > 0) {
-        console.log('Some Foam tests failed: ', failures.length);
-        reject(`Some Foam tests failed: ${failures.length}`);
+        console.log('Some Loam tests failed: ', failures.length);
+        reject(`Some Loam tests failed: ${failures.length}`);
       } else {
         resolve();
       }
     } catch (error) {
-      console.log('There was an error while running the Foam suite', error);
+      console.log('There was an error while running the Loam suite', error);
       return reject(error);
     } finally {
       process.stderr.write = errWrite.bind(process.stderr);

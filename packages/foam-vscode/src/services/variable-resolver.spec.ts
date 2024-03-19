@@ -8,13 +8,13 @@ import {
 } from '../test/test-utils-vscode';
 
 describe('variable-resolver, text substitution', () => {
-  it('should do nothing if no Foam-specific variables are used', async () => {
+  it('should do nothing if no Loam-specific variables are used', async () => {
     const input = `
-      # \${AnotherVariable} <-- Unrelated to Foam
-      # \${AnotherVariable:default_value} <-- Unrelated to Foam
-      # \${AnotherVariable:default_value/(.*)/\${1:/upcase}/}} <-- Unrelated to Foam
-      # $AnotherVariable} <-- Unrelated to Foam
-      # $CURRENT_YEAR-\${CURRENT_MONTH}-$CURRENT_DAY <-- Unrelated to Foam
+      # \${AnotherVariable} <-- Unrelated to Loam
+      # \${AnotherVariable:default_value} <-- Unrelated to Loam
+      # \${AnotherVariable:default_value/(.*)/\${1:/upcase}/}} <-- Unrelated to Loam
+      # $AnotherVariable} <-- Unrelated to Loam
+      # $CURRENT_YEAR-\${CURRENT_MONTH}-$CURRENT_DAY <-- Unrelated to Loam
     `;
 
     const givenValues = new Map<string, string>();
@@ -24,7 +24,7 @@ describe('variable-resolver, text substitution', () => {
   });
 
   test('Ignores variable-looking text values', async () => {
-    // Related to https://github.com/foambubble/foam/issues/602
+    // Related to https://github.com/loambubble/loam/issues/602
     const input = `
         # \${CURRENT_DATE/.*/\${FOAM_TITLE}/} <-- FOAM_TITLE is not a variable here, but a text in a transform
         # \${1|one,two,\${FOAM_TITLE}|} <-- FOAM_TITLE is not a variable here, but a text in a choice
@@ -62,7 +62,7 @@ describe('variable-resolver, text substitution', () => {
 });
 
 describe('variable-resolver, variable resolution', () => {
-  it('should do nothing for unknown Foam-specific variables', async () => {
+  it('should do nothing for unknown Loam-specific variables', async () => {
     const variables = [new Variable('FOAM_FOO')];
 
     const expected = new Map<string, string>();
@@ -73,15 +73,15 @@ describe('variable-resolver, variable resolution', () => {
   });
 
   it('should resolve FOAM_TITLE', async () => {
-    const foamTitle = 'My note title';
+    const loamTitle = 'My note title';
     const variables = [new Variable('FOAM_TITLE'), new Variable('FOAM_SLUG')];
 
     jest
       .spyOn(window, 'showInputBox')
-      .mockImplementationOnce(jest.fn(() => Promise.resolve(foamTitle)));
+      .mockImplementationOnce(jest.fn(() => Promise.resolve(loamTitle)));
 
     const expected = new Map<string, string>();
-    expected.set('FOAM_TITLE', foamTitle);
+    expected.set('FOAM_TITLE', loamTitle);
     expected.set('FOAM_SLUG', 'my-note-title');
 
     const givenValues = new Map<string, string>();
@@ -90,31 +90,31 @@ describe('variable-resolver, variable resolution', () => {
   });
 
   it('should resolve FOAM_TITLE without asking the user when it is provided', async () => {
-    const foamTitle = 'My note title';
+    const loamTitle = 'My note title';
     const variables = [new Variable('FOAM_TITLE')];
 
     const expected = new Map<string, string>();
-    expected.set('FOAM_TITLE', foamTitle);
+    expected.set('FOAM_TITLE', loamTitle);
 
     const givenValues = new Map<string, string>();
-    givenValues.set('FOAM_TITLE', foamTitle);
+    givenValues.set('FOAM_TITLE', loamTitle);
     const resolver = new Resolver(givenValues, new Date());
     expect(await resolver.resolveAll(variables)).toEqual(expected);
   });
 
   it('should resolve FOAM_TITLE_SAFE', async () => {
-    const foamTitle = 'My/note#title';
+    const loamTitle = 'My/note#title';
     const variables = [
       new Variable('FOAM_TITLE'),
       new Variable('FOAM_TITLE_SAFE'),
     ];
 
     const expected = new Map<string, string>();
-    expected.set('FOAM_TITLE', foamTitle);
+    expected.set('FOAM_TITLE', loamTitle);
     expected.set('FOAM_TITLE_SAFE', 'My-note-title');
 
     const givenValues = new Map<string, string>();
-    givenValues.set('FOAM_TITLE', foamTitle);
+    givenValues.set('FOAM_TITLE', loamTitle);
     const resolver = new Resolver(givenValues, new Date());
     expect(await resolver.resolveAll(variables)).toEqual(expected);
   });
@@ -225,13 +225,13 @@ describe('variable-resolver, variable resolution', () => {
 });
 
 describe('variable-resolver, resolveText', () => {
-  it('should do nothing for template without Foam-specific variables', async () => {
+  it('should do nothing for template without Loam-specific variables', async () => {
     const input = `
-        # \${AnotherVariable} <-- Unrelated to Foam
-        # \${AnotherVariable:default_value} <-- Unrelated to Foam
-        # \${AnotherVariable:default_value/(.*)/\${1:/upcase}/}} <-- Unrelated to Foam
-        # $AnotherVariable} <-- Unrelated to Foam
-        # $CURRENT_YEAR-\${CURRENT_MONTH}-$CURRENT_DAY <-- Unrelated to Foam
+        # \${AnotherVariable} <-- Unrelated to Loam
+        # \${AnotherVariable:default_value} <-- Unrelated to Loam
+        # \${AnotherVariable:default_value/(.*)/\${1:/upcase}/}} <-- Unrelated to Loam
+        # $AnotherVariable} <-- Unrelated to Loam
+        # $CURRENT_YEAR-\${CURRENT_MONTH}-$CURRENT_DAY <-- Unrelated to Loam
       `;
 
     const expected = input;
@@ -240,7 +240,7 @@ describe('variable-resolver, resolveText', () => {
     expect(await resolver.resolveText(input)).toEqual(expected);
   });
 
-  it('should do nothing for unknown Foam-specific variables', async () => {
+  it('should do nothing for unknown Loam-specific variables', async () => {
     const input = `
         # $FOAM_FOO
         # \${FOAM_FOO}
@@ -265,11 +265,11 @@ describe('variable-resolver, resolveText', () => {
   });
 
   it('should append FOAM_SELECTED_TEXT with a newline to the template if there is selected text but FOAM_SELECTED_TEXT is not referenced and the template ends in a newline', async () => {
-    const foamTitle = 'My note title';
+    const loamTitle = 'My note title';
 
     jest
       .spyOn(window, 'showInputBox')
-      .mockImplementationOnce(jest.fn(() => Promise.resolve(foamTitle)));
+      .mockImplementationOnce(jest.fn(() => Promise.resolve(loamTitle)));
 
     const input = `# \${FOAM_TITLE}\n`;
 
@@ -282,11 +282,11 @@ describe('variable-resolver, resolveText', () => {
   });
 
   it('should append FOAM_SELECTED_TEXT with a newline to the template if there is selected text but FOAM_SELECTED_TEXT is not referenced and the template ends in multiple newlines', async () => {
-    const foamTitle = 'My note title';
+    const loamTitle = 'My note title';
 
     jest
       .spyOn(window, 'showInputBox')
-      .mockImplementationOnce(jest.fn(() => Promise.resolve(foamTitle)));
+      .mockImplementationOnce(jest.fn(() => Promise.resolve(loamTitle)));
 
     const input = `# \${FOAM_TITLE}\n\n`;
 
@@ -299,11 +299,11 @@ describe('variable-resolver, resolveText', () => {
   });
 
   it('should append FOAM_SELECTED_TEXT without a newline to the template if there is selected text but FOAM_SELECTED_TEXT is not referenced and the template does not end in a newline', async () => {
-    const foamTitle = 'My note title';
+    const loamTitle = 'My note title';
 
     jest
       .spyOn(window, 'showInputBox')
-      .mockImplementationOnce(jest.fn(() => Promise.resolve(foamTitle)));
+      .mockImplementationOnce(jest.fn(() => Promise.resolve(loamTitle)));
 
     const input = `# \${FOAM_TITLE}`;
 
@@ -316,11 +316,11 @@ describe('variable-resolver, resolveText', () => {
   });
 
   it('should not append FOAM_SELECTED_TEXT to a template if there is no selected text and is not referenced', async () => {
-    const foamTitle = 'My note title';
+    const loamTitle = 'My note title';
 
     jest
       .spyOn(window, 'showInputBox')
-      .mockImplementationOnce(jest.fn(() => Promise.resolve(foamTitle)));
+      .mockImplementationOnce(jest.fn(() => Promise.resolve(loamTitle)));
 
     const input = `
         # \${FOAM_TITLE}

@@ -9,7 +9,7 @@ import {
 import { NavigationProvider } from './navigation-provider';
 import { toVsCodeUri } from '../utils/vsc-utils';
 import { createMarkdownParser } from '../core/services/markdown-parser';
-import { FoamGraph } from '../core/model/graph';
+import { LoamGraph } from '../core/model/graph';
 import { commandAsURI } from '../utils/commands';
 import { CREATE_NOTE_COMMAND } from './commands/create-note';
 import { Location } from '../core/model/location';
@@ -35,7 +35,7 @@ describe('Document navigation', () => {
     it('should not return any link for empty documents', async () => {
       const { uri, content } = await createFile('');
       const ws = createTestWorkspace().set(parser.parse(uri, content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const doc = await vscode.workspace.openTextDocument(toVsCodeUri(uri));
       const provider = new NavigationProvider(ws, graph, parser);
@@ -49,7 +49,7 @@ describe('Document navigation', () => {
         'This is some content without links'
       );
       const ws = createTestWorkspace().set(parser.parse(uri, content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const doc = await vscode.workspace.openTextDocument(toVsCodeUri(uri));
       const provider = new NavigationProvider(ws, graph, parser);
@@ -64,7 +64,7 @@ describe('Document navigation', () => {
       const ws = createTestWorkspace()
         .set(parser.parse(fileA.uri, fileA.content))
         .set(parser.parse(fileA.uri, fileB.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileB.uri);
       const provider = new NavigationProvider(ws, graph, parser);
@@ -77,7 +77,7 @@ describe('Document navigation', () => {
       const fileA = await createFile(`this is a link to [[a placeholder]].`);
       const noteA = parser.parse(fileA.uri, fileA.content);
       const ws = createTestWorkspace().set(noteA);
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileA.uri);
       const provider = new NavigationProvider(ws, graph, parser);
@@ -105,7 +105,7 @@ describe('Document navigation', () => {
       const ws = createTestWorkspace().set(
         parser.parse(fileA.uri, fileA.content)
       );
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileA.uri);
       const provider = new NavigationProvider(ws, graph, parser);
@@ -122,7 +122,7 @@ describe('Document navigation', () => {
       const ws = createTestWorkspace()
         .set(parser.parse(fileA.uri, fileA.content))
         .set(parser.parse(fileB.uri, fileB.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileB.uri);
       const provider = new NavigationProvider(ws, graph, parser);
@@ -149,7 +149,7 @@ describe('Document navigation', () => {
       const ws = createTestWorkspace()
         .set(parser.parse(fileA.uri, fileA.content))
         .set(parser.parse(fileB.uri, fileB.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileB.uri);
       const provider = new NavigationProvider(ws, graph, parser);
@@ -172,7 +172,7 @@ describe('Document navigation', () => {
       const ws = createTestWorkspace()
         .set(parser.parse(fileA.uri, fileA.content))
         .set(parser.parse(fileB.uri, fileB.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileB.uri);
       const provider = new NavigationProvider(ws, graph, parser);
@@ -195,7 +195,7 @@ describe('Document navigation', () => {
       const ws = createTestWorkspace()
         .set(parser.parse(fileA.uri, fileA.content))
         .set(parser.parse(fileB.uri, fileB.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileB.uri);
       const provider = new NavigationProvider(ws, graph, parser);
@@ -225,7 +225,7 @@ describe('Document navigation', () => {
         .set(parser.parse(fileB.uri, fileB.content))
         .set(parser.parse(fileC.uri, fileC.content))
         .set(parser.parse(fileD.uri, fileD.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileB.uri);
       const provider = new NavigationProvider(ws, graph, parser);

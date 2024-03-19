@@ -3,7 +3,7 @@ import { asAbsoluteUri, URI } from './uri';
 
 Logger.setLevel('error');
 
-describe('Foam URI', () => {
+describe('Loam URI', () => {
   describe('URI parsing', () => {
     const base = URI.file('/path/to/file.md');
     test.each([

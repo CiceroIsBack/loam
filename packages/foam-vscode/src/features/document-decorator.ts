@@ -1,20 +1,20 @@
 import { debounce } from 'lodash';
 import * as vscode from 'vscode';
 import { ResourceParser } from '../core/model/note';
-import { FoamWorkspace } from '../core/model/workspace';
-import { Foam } from '../core/model/foam';
+import { LoamWorkspace } from '../core/model/workspace';
+import { Loam } from '../core/model/loam';
 import { Range } from '../core/model/range';
 import { fromVsCodeUri } from '../utils/vsc-utils';
 
 const placeholderDecoration = vscode.window.createTextEditorDecorationType({
   rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
   textDecoration: 'none',
-  color: { id: 'foam.placeholder' },
+  color: { id: 'loam.placeholder' },
   cursor: 'pointer',
 });
 
 const updateDecorations =
-  (parser: ResourceParser, workspace: FoamWorkspace) =>
+  (parser: ResourceParser, workspace: LoamWorkspace) =>
   (editor: vscode.TextEditor) => {
     if (!editor || editor.document.languageId !== 'markdown') {
       return;
@@ -42,14 +42,14 @@ const updateDecorations =
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
   let activeEditor = vscode.window.activeTextEditor;
 
   const immediatelyUpdateDecorations = updateDecorations(
-    foam.services.parser,
-    foam.workspace
+    loam.services.parser,
+    loam.workspace
   );
 
   const debouncedUpdateDecorations = debounce(

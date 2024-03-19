@@ -1,10 +1,10 @@
 import { IDisposable } from '../common/lifecycle';
 import { IDataStore, IMatcher, IWatcher } from '../services/datastore';
-import { FoamWorkspace } from './workspace';
-import { FoamGraph } from './graph';
+import { LoamWorkspace } from './workspace';
+import { LoamGraph } from './graph';
 import { ResourceParser } from './note';
 import { ResourceProvider } from './provider';
-import { FoamTags } from './tags';
+import { LoamTags } from './tags';
 import { Logger, withTiming, withTimingAsync } from '../utils/log';
 
 export interface Services {
@@ -13,11 +13,11 @@ export interface Services {
   matcher: IMatcher;
 }
 
-export interface Foam extends IDisposable {
+export interface Loam extends IDisposable {
   services: Services;
-  workspace: FoamWorkspace;
-  graph: FoamGraph;
-  tags: FoamTags;
+  workspace: LoamWorkspace;
+  graph: LoamGraph;
+  tags: LoamTags;
 }
 
 export const bootstrap = async (
@@ -30,7 +30,7 @@ export const bootstrap = async (
 ) => {
   const workspace = await withTimingAsync(
     () =>
-      FoamWorkspace.fromProviders(
+      LoamWorkspace.fromProviders(
         initialProviders,
         dataStore,
         defaultExtension
@@ -39,12 +39,12 @@ export const bootstrap = async (
   );
 
   const graph = withTiming(
-    () => FoamGraph.fromWorkspace(workspace, true),
+    () => LoamGraph.fromWorkspace(workspace, true),
     ms => Logger.info(`Graph loaded in ${ms}ms`)
   );
 
   const tags = withTiming(
-    () => FoamTags.fromWorkspace(workspace, true),
+    () => LoamTags.fromWorkspace(workspace, true),
     ms => Logger.info(`Tags loaded in ${ms}ms`)
   );
 
@@ -63,7 +63,7 @@ export const bootstrap = async (
     workspace.delete(uri);
   });
 
-  const foam: Foam = {
+  const loam: Loam = {
     workspace,
     graph,
     tags,
@@ -78,5 +78,5 @@ export const bootstrap = async (
     },
   };
 
-  return foam;
+  return loam;
 };

@@ -1,4 +1,4 @@
-import { FoamWorkspace } from '../../../core/model/workspace';
+import { LoamWorkspace } from '../../../core/model/workspace';
 import {
   AlwaysIncludeMatcher,
   IMatcher,
@@ -45,7 +45,7 @@ describe('TestProvider', () => {
     title: 'HIJ',
   });
 
-  const workspace = new FoamWorkspace()
+  const workspace = new LoamWorkspace()
     .set(note1)
     .set(note2)
     .set(note3)

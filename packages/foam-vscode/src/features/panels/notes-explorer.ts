@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { Foam } from '../../core/model/foam';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { Loam } from '../../core/model/loam';
+import { LoamWorkspace } from '../../core/model/workspace';
 import {
   ResourceRangeTreeItem,
   ResourceTreeItem,
@@ -8,7 +8,7 @@ import {
   expandAll,
 } from './utils/tree-view-utils';
 import { Resource } from '../../core/model/note';
-import { FoamGraph } from '../../core/model/graph';
+import { LoamGraph } from '../../core/model/graph';
 import { ContextMemento } from '../../utils/vsc-utils';
 import {
   FolderTreeItem,
@@ -17,17 +17,17 @@ import {
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
   const provider = new NotesProvider(
-    foam.workspace,
-    foam.graph,
+    loam.workspace,
+    loam.graph,
     context.globalState
   );
   provider.refresh();
   const treeView = vscode.window.createTreeView<NotesTreeItems>(
-    'foam-vscode.notes-explorer',
+    'loam-vscode.notes-explorer',
     {
       treeDataProvider: provider,
       showCollapseAll: true,
@@ -58,11 +58,11 @@ export default async function activate(
   context.subscriptions.push(
     treeView,
     provider,
-    foam.graph.onDidUpdate(() => {
+    loam.graph.onDidUpdate(() => {
       provider.refresh();
     }),
     vscode.commands.registerCommand(
-      `foam-vscode.views.notes-explorer.expand-all`,
+      `loam-vscode.views.notes-explorer.expand-all`,
       (...args) =>
         expandAll(treeView, provider, node => node.contextValue === 'folder')
     ),
@@ -93,26 +93,26 @@ export class NotesProvider extends FolderTreeProvider<
 > {
   public show = new ContextMemento<'all' | 'notes-only'>(
     this.state,
-    `foam-vscode.views.notes-explorer.show`,
+    `loam-vscode.views.notes-explorer.show`,
     'all'
   );
 
   constructor(
-    private workspace: FoamWorkspace,
-    private graph: FoamGraph,
+    private workspace: LoamWorkspace,
+    private graph: LoamGraph,
     private state: vscode.Memento
   ) {
     super();
     this.disposables.push(
       vscode.commands.registerCommand(
-        `foam-vscode.views.notes-explorer.show:all`,
+        `loam-vscode.views.notes-explorer.show:all`,
         () => {
           this.show.update('all');
           this.refresh();
         }
       ),
       vscode.commands.registerCommand(
-        `foam-vscode.views.notes-explorer.show:notes`,
+        `loam-vscode.views.notes-explorer.show:notes`,
         () => {
           this.show.update('notes-only');
           this.refresh();

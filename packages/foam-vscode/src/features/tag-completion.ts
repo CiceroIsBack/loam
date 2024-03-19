@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { Foam } from '../core/model/foam';
-import { FoamTags } from '../core/model/tags';
+import { Loam } from '../core/model/loam';
+import { LoamTags } from '../core/model/tags';
 import { isInFrontMatter, isOnYAMLKeywordLine, mdDocSelector } from '../utils';
 
 // this regex is different from HASHTAG_REGEX in that it does not look for a
@@ -11,13 +11,13 @@ const MAX_LINES_FOR_FRONT_MATTER = 50;
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
       mdDocSelector,
-      new TagCompletionProvider(foam.tags),
+      new TagCompletionProvider(loam.tags),
       '#'
     )
   );
@@ -26,7 +26,7 @@ export default async function activate(
 export class TagCompletionProvider
   implements vscode.CompletionItemProvider<vscode.CompletionItem>
 {
-  constructor(private foamTags: FoamTags) {}
+  constructor(private loamTags: LoamTags) {}
 
   provideCompletionItems(
     document: vscode.TextDocument,
@@ -127,7 +127,7 @@ export class TagCompletionProvider
 
   private createCompletionTagItems(): vscode.CompletionItem[] {
     const completionTags = [];
-    [...this.foamTags.tags].forEach(([tag]) => {
+    [...this.loamTags.tags].forEach(([tag]) => {
       const item = new vscode.CompletionItem(
         tag,
         vscode.CompletionItemKind.Text

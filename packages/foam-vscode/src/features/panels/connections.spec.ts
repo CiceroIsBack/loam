@@ -8,7 +8,7 @@ import {
 } from '../../test/test-utils-vscode';
 import { ConnectionsTreeDataProvider } from './connections';
 import { MapBasedMemento, toVsCodeUri } from '../../utils/vsc-utils';
-import { FoamGraph } from '../../core/model/graph';
+import { LoamGraph } from '../../core/model/graph';
 import {
   ResourceRangeTreeItem,
   ResourceTreeItem,
@@ -41,7 +41,7 @@ describe('Backlinks panel', () => {
     links: [{ slug: 'note-a' }],
   });
   ws.set(noteA).set(noteB).set(noteC);
-  const graph = FoamGraph.fromWorkspace(ws, true);
+  const graph = LoamGraph.fromWorkspace(ws, true);
 
   const provider = new ConnectionsTreeDataProvider(
     ws,

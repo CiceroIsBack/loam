@@ -15,7 +15,7 @@ class VscodeEnvironment extends TestEnvironment {
 
     vscode.workspace
       .getConfiguration()
-      .update('foam.edit.linkReferenceDefinitions', 'off');
+      .update('loam.edit.linkReferenceDefinitions', 'off');
   }
 
   async teardown() {

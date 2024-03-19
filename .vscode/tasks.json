@@ -4,7 +4,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "watch: foam-vscode",
+      "label": "watch: loam-vscode",
       "type": "npm",
       "script": "watch",
       "problemMatcher": "$tsc-watch",

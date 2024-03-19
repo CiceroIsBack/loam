@@ -8,7 +8,7 @@ import {
   VariableResolver,
 } from '../core/common/snippetParser';
 
-const knownFoamVariables = new Set([
+const knownLoamVariables = new Set([
   'FOAM_TITLE',
   'FOAM_TITLE_SAFE',
   'FOAM_SLUG',
@@ -34,11 +34,11 @@ export class Resolver implements VariableResolver {
    * Create a resolver
    *
    * @param givenValues the map of variable name to value
-   * @param foamDate the date used to fill FOAM_DATE_* variables
+   * @param loamDate the date used to fill FOAM_DATE_* variables
    */
   constructor(
     private givenValues: Map<string, string>,
-    private foamDate: Date
+    private loamDate: Date
   ) {}
 
   /**
@@ -60,18 +60,18 @@ export class Resolver implements VariableResolver {
    */
   async resolveText(text: string): Promise<string> {
     let snippet = new SnippetParser().parse(text, false, false);
-    let foamVariablesInTemplate = new Set(
+    let loamVariablesInTemplate = new Set(
       snippet
         .variables()
         .map(v => v.name)
-        .filter(name => knownFoamVariables.has(name))
+        .filter(name => knownLoamVariables.has(name))
     );
 
     // Add FOAM_SELECTED_TEXT to the template text if required
     // and re-parse the template text.
     if (
       this.givenValues.has('FOAM_SELECTED_TEXT') &&
-      !foamVariablesInTemplate.has('FOAM_SELECTED_TEXT')
+      !loamVariablesInTemplate.has('FOAM_SELECTED_TEXT')
     ) {
       const token = '$FOAM_SELECTED_TEXT';
       if (text.endsWith('\n')) {
@@ -80,16 +80,16 @@ export class Resolver implements VariableResolver {
         text = `${text}\n${token}`;
       }
       snippet = new SnippetParser().parse(text, false, false);
-      foamVariablesInTemplate = new Set(
+      loamVariablesInTemplate = new Set(
         snippet
           .variables()
           .map(v => v.name)
-          .filter(name => knownFoamVariables.has(name))
+          .filter(name => knownLoamVariables.has(name))
       );
     }
 
-    await snippet.resolveVariables(this, foamVariablesInTemplate);
-    return snippet.snippetTextWithVariablesSubstituted(foamVariablesInTemplate);
+    await snippet.resolveVariables(this, loamVariablesInTemplate);
+    return snippet.snippetTextWithVariablesSubstituted(loamVariablesInTemplate);
   }
 
   /**
@@ -131,48 +131,48 @@ export class Resolver implements VariableResolver {
       let value: Promise<string | undefined> = Promise.resolve(undefined);
       switch (name) {
         case 'FOAM_TITLE':
-          value = resolveFoamTitle();
+          value = resolveLoamTitle();
           break;
         case 'FOAM_TITLE_SAFE':
-          value = resolveFoamTitleSafe(this);
+          value = resolveLoamTitleSafe(this);
           break;
         case 'FOAM_SLUG':
           value = toSlug(await this.resolve(new Variable('FOAM_TITLE')));
           break;
         case 'FOAM_SELECTED_TEXT':
-          value = Promise.resolve(resolveFoamSelectedText());
+          value = Promise.resolve(resolveLoamSelectedText());
           break;
         case 'FOAM_DATE_YEAR':
-          value = Promise.resolve(String(this.foamDate.getFullYear()));
+          value = Promise.resolve(String(this.loamDate.getFullYear()));
           break;
         case 'FOAM_DATE_YEAR_SHORT':
           value = Promise.resolve(
-            String(this.foamDate.getFullYear()).slice(-2)
+            String(this.loamDate.getFullYear()).slice(-2)
           );
           break;
         case 'FOAM_DATE_MONTH':
           value = Promise.resolve(
-            String(this.foamDate.getMonth().valueOf() + 1).padStart(2, '0')
+            String(this.loamDate.getMonth().valueOf() + 1).padStart(2, '0')
           );
           break;
         case 'FOAM_DATE_MONTH_NAME':
           value = Promise.resolve(
-            this.foamDate.toLocaleString('default', { month: 'long' })
+            this.loamDate.toLocaleString('default', { month: 'long' })
           );
           break;
         case 'FOAM_DATE_MONTH_NAME_SHORT':
           value = Promise.resolve(
-            this.foamDate.toLocaleString('default', { month: 'short' })
+            this.loamDate.toLocaleString('default', { month: 'short' })
           );
           break;
         case 'FOAM_DATE_DATE':
           value = Promise.resolve(
-            String(this.foamDate.getDate().valueOf()).padStart(2, '0')
+            String(this.loamDate.getDate().valueOf()).padStart(2, '0')
           );
           break;
         case 'FOAM_DATE_WEEK': {
           // https://en.wikipedia.org/wiki/ISO_8601#Week_dates
-          const date = new Date(this.foamDate);
+          const date = new Date(this.loamDate);
 
           // Find Thursday of this week starting on Monday
           date.setDate(date.getDate() + 4 - (date.getDay() || 7));
@@ -191,32 +191,32 @@ export class Resolver implements VariableResolver {
         }
         case 'FOAM_DATE_DAY_NAME':
           value = Promise.resolve(
-            this.foamDate.toLocaleString('default', { weekday: 'long' })
+            this.loamDate.toLocaleString('default', { weekday: 'long' })
           );
           break;
         case 'FOAM_DATE_DAY_NAME_SHORT':
           value = Promise.resolve(
-            this.foamDate.toLocaleString('default', { weekday: 'short' })
+            this.loamDate.toLocaleString('default', { weekday: 'short' })
           );
           break;
         case 'FOAM_DATE_HOUR':
           value = Promise.resolve(
-            String(this.foamDate.getHours().valueOf()).padStart(2, '0')
+            String(this.loamDate.getHours().valueOf()).padStart(2, '0')
           );
           break;
         case 'FOAM_DATE_MINUTE':
           value = Promise.resolve(
-            String(this.foamDate.getMinutes().valueOf()).padStart(2, '0')
+            String(this.loamDate.getMinutes().valueOf()).padStart(2, '0')
           );
           break;
         case 'FOAM_DATE_SECOND':
           value = Promise.resolve(
-            String(this.foamDate.getSeconds().valueOf()).padStart(2, '0')
+            String(this.loamDate.getSeconds().valueOf()).padStart(2, '0')
           );
           break;
         case 'FOAM_DATE_SECONDS_UNIX':
           value = Promise.resolve(
-            (this.foamDate.getTime() / 1000).toString().padStart(2, '0')
+            (this.loamDate.getTime() / 1000).toString().padStart(2, '0')
           );
           break;
         default:
@@ -230,7 +230,7 @@ export class Resolver implements VariableResolver {
   }
 }
 
-async function resolveFoamTitle() {
+async function resolveLoamTitle() {
   const title = await window.showInputBox({
     prompt: `Enter a title for the new note`,
     value: 'Title of my New Note',
@@ -243,7 +243,7 @@ async function resolveFoamTitle() {
   return title;
 }
 
-function resolveFoamSelectedText() {
+function resolveLoamSelectedText() {
   return findSelectionContent()?.content ?? '';
 }
 
@@ -254,7 +254,7 @@ function resolveFoamSelectedText() {
  *   https://stackoverflow.com/questions/1976007/what-characters-are-forbidden-in-windows-and-linux-directory-names
  * Even if some might be allowed in Win or Linux, to keep things more compatible and less error prone
  * we don't allow them
- * Also see https://github.com/foambubble/foam/issues/1042
+ * Also see https://github.com/loambubble/loam/issues/1042
  */
 const UNALLOWED_CHARS = '/\\#%&{}<>?*$!\'":@+`|=';
 
@@ -265,7 +265,7 @@ const UNALLOWED_CHARS = '/\\#%&{}<>?*$!\'":@+`|=';
  * @param resolver the resolver to use
  * @returns the string path of the new note
  */
-export const resolveFoamTitleSafe = async (resolver: Resolver) => {
+export const resolveLoamTitleSafe = async (resolver: Resolver) => {
   let safeTitle = await resolver.resolveFromName('FOAM_TITLE');
   UNALLOWED_CHARS.split('').forEach(char => {
     safeTitle = safeTitle.split(char).join('-');

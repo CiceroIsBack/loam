@@ -3,7 +3,7 @@ import { TEST_DATA_DIR } from '../../test/test-utils';
 import { MarkdownResourceProvider } from '../services/markdown-provider';
 import { Resource } from '../model/note';
 import { Range } from '../model/range';
-import { FoamWorkspace } from '../model/workspace';
+import { LoamWorkspace } from '../model/workspace';
 import { Logger } from '../utils/log';
 import fs from 'fs';
 import { URI } from '../model/uri';
@@ -14,7 +14,7 @@ import { FileDataStore } from '../../test/test-datastore';
 Logger.setLevel('error');
 
 describe('generateLinkReferences', () => {
-  let _workspace: FoamWorkspace;
+  let _workspace: LoamWorkspace;
   // TODO slug must be reserved for actual slugs, not file names
   const findBySlug = (slug: string): Resource => {
     return _workspace
@@ -32,7 +32,7 @@ describe('generateLinkReferences', () => {
     );
     const parser = createMarkdownParser();
     const mdProvider = new MarkdownResourceProvider(dataStore, parser);
-    _workspace = await FoamWorkspace.fromProviders([mdProvider], dataStore);
+    _workspace = await LoamWorkspace.fromProviders([mdProvider], dataStore);
   });
 
   it('initialised test graph correctly', () => {

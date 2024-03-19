@@ -1,8 +1,8 @@
 import { createTestNote } from '../../test/test-utils';
 import { cleanWorkspace, closeEditors } from '../../test/test-utils-vscode';
 import { TagItem, TagsProvider } from './tags-explorer';
-import { FoamTags } from '../../core/model/tags';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { LoamTags } from '../../core/model/tags';
+import { LoamWorkspace } from '../../core/model/workspace';
 import { ResourceTreeItem } from './utils/tree-view-utils';
 
 describe('Tags tree panel', () => {
@@ -23,9 +23,9 @@ describe('Tags tree panel', () => {
       tags: ['test'],
       uri: './note-a.md',
     });
-    const workspace = new FoamWorkspace().set(noteA);
-    const foamTags = FoamTags.fromWorkspace(workspace);
-    const provider = new TagsProvider(foamTags, workspace, false);
+    const workspace = new LoamWorkspace().set(noteA);
+    const loamTags = LoamTags.fromWorkspace(workspace);
+    const provider = new TagsProvider(loamTags, workspace, false);
     provider.refresh();
 
     const treeItems = (await provider.getChildren()) as TagItem[];
@@ -41,9 +41,9 @@ describe('Tags tree panel', () => {
       tags: ['parent/child'],
       uri: './note-a.md',
     });
-    const workspace = new FoamWorkspace().set(noteA);
-    const foamTags = FoamTags.fromWorkspace(workspace);
-    const provider = new TagsProvider(foamTags, workspace, false);
+    const workspace = new LoamWorkspace().set(noteA);
+    const loamTags = LoamTags.fromWorkspace(workspace);
+    const provider = new TagsProvider(loamTags, workspace, false);
     provider.refresh();
 
     const parentTreeItems = (await provider.getChildren()) as TagItem[];
@@ -71,9 +71,9 @@ describe('Tags tree panel', () => {
       tags: ['parent/subchild'],
       uri: './note-b.md',
     });
-    const workspace = new FoamWorkspace().set(noteA).set(noteB);
-    const foamTags = FoamTags.fromWorkspace(workspace);
-    const provider = new TagsProvider(foamTags, workspace, false);
+    const workspace = new LoamWorkspace().set(noteA).set(noteB);
+    const loamTags = LoamTags.fromWorkspace(workspace);
+    const provider = new TagsProvider(loamTags, workspace, false);
     provider.refresh();
 
     const parentTreeItems = (await provider.getChildren()) as TagItem[];
@@ -105,9 +105,9 @@ describe('Tags tree panel', () => {
       title: 'Test note',
       uri: './note-c.md',
     });
-    const workspace = new FoamWorkspace().set(noteC);
-    const foamTags = FoamTags.fromWorkspace(workspace);
-    const provider = new TagsProvider(foamTags, workspace, false);
+    const workspace = new LoamWorkspace().set(noteC);
+    const loamTags = LoamTags.fromWorkspace(workspace);
+    const provider = new TagsProvider(loamTags, workspace, false);
 
     provider.refresh();
 
@@ -143,9 +143,9 @@ describe('Tags tree panel', () => {
       tags: ['parent/child/second'],
       uri: './note-a.md',
     });
-    const workspace = new FoamWorkspace().set(noteA);
-    const foamTags = FoamTags.fromWorkspace(workspace);
-    const provider = new TagsProvider(foamTags, workspace, false);
+    const workspace = new LoamWorkspace().set(noteA);
+    const loamTags = LoamTags.fromWorkspace(workspace);
+    const provider = new TagsProvider(loamTags, workspace, false);
 
     provider.refresh();
 

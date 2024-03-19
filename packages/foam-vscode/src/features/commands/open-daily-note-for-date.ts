@@ -1,19 +1,19 @@
 import { ExtensionContext, commands, window, QuickPickItem } from 'vscode';
 import { openDailyNoteFor } from '../../dated-notes';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { LoamWorkspace } from '../../core/model/workspace';
 import { range } from 'lodash';
 import dateFormat from 'dateformat';
-import { Foam } from '../../core/model/foam';
+import { Loam } from '../../core/model/loam';
 
 export default async function activate(
   context: ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
   context.subscriptions.push(
     commands.registerCommand(
-      'foam-vscode.open-daily-note-for-date',
+      'loam-vscode.open-daily-note-for-date',
       async () => {
-        const ws = (await foamPromise).workspace;
+        const ws = (await loamPromise).workspace;
         const date = await window
           .showQuickPick<DateItem>(generateDateItems(ws), {
             placeHolder: 'Choose or type a date (YYYY-MM-DD)',
@@ -52,7 +52,7 @@ class DateItem implements QuickPickItem {
   }
 }
 
-function generateDateItems(ws: FoamWorkspace): DateItem[] {
+function generateDateItems(ws: LoamWorkspace): DateItem[] {
   const items = [
     ...range(0, 32), // next month
     ...range(-31, 0), // last month

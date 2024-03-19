@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { URI } from '../../core/model/uri';
 import { isNone } from '../../utils';
-import { Foam } from '../../core/model/foam';
-import { FoamWorkspace } from '../../core/model/workspace';
-import { Connection, FoamGraph } from '../../core/model/graph';
+import { Loam } from '../../core/model/loam';
+import { LoamWorkspace } from '../../core/model/workspace';
+import { Connection, LoamGraph } from '../../core/model/graph';
 import { Range } from '../../core/model/range';
 import { ContextMemento, fromVsCodeUri } from '../../utils/vsc-utils';
 import {
@@ -17,16 +17,16 @@ import { BaseTreeProvider } from './utils/base-tree-provider';
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
 
   const provider = new ConnectionsTreeDataProvider(
-    foam.workspace,
-    foam.graph,
+    loam.workspace,
+    loam.graph,
     context.globalState
   );
-  const treeView = vscode.window.createTreeView('foam-vscode.connections', {
+  const treeView = vscode.window.createTreeView('loam-vscode.connections', {
     treeDataProvider: provider,
     showCollapseAll: true,
   });
@@ -44,7 +44,7 @@ export default async function activate(
   context.subscriptions.push(
     provider,
     treeView,
-    foam.graph.onDidUpdate(() => updateTreeView()),
+    loam.graph.onDidUpdate(() => updateTreeView()),
     vscode.window.onDidChangeActiveTextEditor(() => updateTreeView()),
     provider.onDidChangeTreeData(() => {
       treeView.title = ` ${provider.show.get()} (${provider.nValues})`;
@@ -55,7 +55,7 @@ export default async function activate(
 export class ConnectionsTreeDataProvider extends BaseTreeProvider<vscode.TreeItem> {
   public show = new ContextMemento<'all links' | 'backlinks' | 'forward links'>(
     this.state,
-    `foam-vscode.views.connections.show`,
+    `loam-vscode.views.connections.show`,
     'all links',
     true
   );
@@ -64,8 +64,8 @@ export class ConnectionsTreeDataProvider extends BaseTreeProvider<vscode.TreeIte
   private connectionItems: ResourceRangeTreeItem[] = [];
 
   constructor(
-    private workspace: FoamWorkspace,
-    private graph: FoamGraph,
+    private workspace: LoamWorkspace,
+    private graph: LoamGraph,
     public state: vscode.Memento,
     registerCommands = true // for testing. don't love it, but will do for now
   ) {
@@ -75,21 +75,21 @@ export class ConnectionsTreeDataProvider extends BaseTreeProvider<vscode.TreeIte
     }
     this.disposables.push(
       vscode.commands.registerCommand(
-        `foam-vscode.views.connections.show:all-links`,
+        `loam-vscode.views.connections.show:all-links`,
         () => {
           this.show.update('all links');
           this.refresh();
         }
       ),
       vscode.commands.registerCommand(
-        `foam-vscode.views.connections.show:backlinks`,
+        `loam-vscode.views.connections.show:backlinks`,
         () => {
           this.show.update('backlinks');
           this.refresh();
         }
       ),
       vscode.commands.registerCommand(
-        `foam-vscode.views.connections.show:forward-links`,
+        `loam-vscode.views.connections.show:forward-links`,
         () => {
           this.show.update('forward links');
           this.refresh();

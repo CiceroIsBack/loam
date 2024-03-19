@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import { createMarkdownParser } from '../core/services/markdown-parser';
-import { FoamGraph } from '../core/model/graph';
+import { LoamGraph } from '../core/model/graph';
 import { createTestNote, createTestWorkspace } from '../test/test-utils';
 import {
   cleanWorkspace,
   closeEditors,
   createFile,
   showInEditor,
-  withModifiedFoamConfiguration,
+  withModifiedLoamConfiguration,
 } from '../test/test-utils-vscode';
 import { fromVsCodeUri } from '../utils/vsc-utils';
 import {
@@ -45,7 +45,7 @@ describe('Link Completion', () => {
         uri: 'another/file.md',
       })
     );
-  const graph = FoamGraph.fromWorkspace(ws);
+  const graph = LoamGraph.fromWorkspace(ws);
 
   beforeAll(async () => {
     await cleanWorkspace();
@@ -117,13 +117,13 @@ describe('Link Completion', () => {
     workspace.set(parser.parse(noteUri, content));
     const provider = new WikilinkCompletionProvider(
       workspace,
-      FoamGraph.fromWorkspace(workspace)
+      LoamGraph.fromWorkspace(workspace)
     );
 
     const { uri } = await createFile('[[');
     const { doc } = await showInEditor(uri);
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       'completion.label',
       'title',
       async () => {
@@ -136,7 +136,7 @@ describe('Link Completion', () => {
       }
     );
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       'completion.label',
       'path',
       async () => {
@@ -149,7 +149,7 @@ describe('Link Completion', () => {
       }
     );
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       'completion.label',
       'identifier',
       async () => {
@@ -171,13 +171,13 @@ describe('Link Completion', () => {
     workspace.set(parser.parse(noteUri, content));
     const provider = new WikilinkCompletionProvider(
       workspace,
-      FoamGraph.fromWorkspace(workspace)
+      LoamGraph.fromWorkspace(workspace)
     );
 
     const { uri } = await createFile('[[');
     const { doc } = await showInEditor(uri);
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       'completion.useAlias',
       'never',
       async () => {
@@ -192,7 +192,7 @@ describe('Link Completion', () => {
       }
     );
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       'completion.useAlias',
       'whenPathDiffersFromTitle',
       async () => {

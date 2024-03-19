@@ -1,7 +1,7 @@
 import { createTestNote, createTestWorkspace } from '../../test/test-utils';
-import { FoamTags } from './tags';
+import { LoamTags } from './tags';
 
-describe('FoamTags', () => {
+describe('LoamTags', () => {
   it('Collects tags from a list of resources', () => {
     const ws = createTestWorkspace();
 
@@ -22,7 +22,7 @@ describe('FoamTags', () => {
     ws.set(pageA);
     ws.set(pageB);
 
-    const tags = FoamTags.fromWorkspace(ws);
+    const tags = LoamTags.fromWorkspace(ws);
 
     expect(tags.tags).toEqual(
       new Map([
@@ -50,7 +50,7 @@ describe('FoamTags', () => {
     ws.set(page);
     ws.set(taglessPage);
 
-    const tags = FoamTags.fromWorkspace(ws);
+    const tags = LoamTags.fromWorkspace(ws);
     expect(tags.tags).toEqual(new Map([['primary', [page.uri]]]));
 
     const newPage = createTestNote({
@@ -77,7 +77,7 @@ describe('FoamTags', () => {
 
     ws.set(page);
 
-    const tags = FoamTags.fromWorkspace(ws);
+    const tags = LoamTags.fromWorkspace(ws);
     expect(tags.tags).toEqual(new Map([['primary', [page.uri]]]));
 
     const pageEdited = createTestNote({
@@ -104,7 +104,7 @@ describe('FoamTags', () => {
     });
     ws.set(page);
 
-    const tags = FoamTags.fromWorkspace(ws);
+    const tags = LoamTags.fromWorkspace(ws);
     expect(tags.tags).toEqual(new Map([['primary', [page.uri]]]));
 
     const pageEdited = createTestNote({
@@ -132,7 +132,7 @@ describe('FoamTags', () => {
     });
     ws.set(page);
 
-    const tags = FoamTags.fromWorkspace(ws);
+    const tags = LoamTags.fromWorkspace(ws);
     expect(tags.tags).toEqual(new Map([['primary', [page.uri]]]));
 
     ws.delete(page.uri);

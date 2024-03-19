@@ -1,12 +1,12 @@
 import * as vscode from 'vscode';
 import { mdDocSelector } from '../utils';
 import { toVsCodeRange, toVsCodeUri, fromVsCodeUri } from '../utils/vsc-utils';
-import { Foam } from '../core/model/foam';
-import { FoamWorkspace } from '../core/model/workspace';
+import { Loam } from '../core/model/loam';
+import { LoamWorkspace } from '../core/model/workspace';
 import { Resource, ResourceLink, ResourceParser } from '../core/model/note';
 import { URI } from '../core/model/uri';
 import { Range } from '../core/model/range';
-import { FoamGraph } from '../core/model/graph';
+import { LoamGraph } from '../core/model/graph';
 import { Position } from '../core/model/position';
 import { CREATE_NOTE_COMMAND } from './commands/create-note';
 import { commandAsURI } from '../utils/commands';
@@ -14,14 +14,14 @@ import { Location } from '../core/model/location';
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
 
   const navigationProvider = new NavigationProvider(
-    foam.workspace,
-    foam.graph,
-    foam.services.parser
+    loam.workspace,
+    loam.graph,
+    loam.services.parser
   );
 
   context.subscriptions.push(
@@ -41,7 +41,7 @@ export default async function activate(
 }
 
 /**
- * Provides navigation and references for Foam links.
+ * Provides navigation and references for Loam links.
  * - We create definintions for existing wikilinks but not placeholders
  * - We create links for both
  * - We create references for both
@@ -50,7 +50,7 @@ export default async function activate(
  * Definitions are automatically invoked by VS Code on hover, whereas links require
  * the user to explicitly clicking - and we want the note creation to be explicit.
  *
- * Also see https://github.com/foambubble/foam/pull/724
+ * Also see https://github.com/loambubble/loam/pull/724
  */
 export class NavigationProvider
   implements
@@ -59,8 +59,8 @@ export class NavigationProvider
     vscode.ReferenceProvider
 {
   constructor(
-    private workspace: FoamWorkspace,
-    private graph: FoamGraph,
+    private workspace: LoamWorkspace,
+    private graph: LoamGraph,
     private parser: ResourceParser
   ) {}
 

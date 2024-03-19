@@ -1,4 +1,4 @@
-import { FoamWorkspace } from './workspace';
+import { LoamWorkspace } from './workspace';
 import { Logger } from '../utils/log';
 import { URI } from './uri';
 import { createTestNote, createTestWorkspace } from '../../test/test-utils';
@@ -107,7 +107,7 @@ describe('Identifier computation', () => {
     const third = createTestNote({
       uri: '/another/path/for/page-a.md',
     });
-    const ws = new FoamWorkspace('.md').set(first).set(second).set(third);
+    const ws = new LoamWorkspace('.md').set(first).set(second).set(third);
 
     expect(ws.getIdentifier(first.uri)).toEqual('to/page-a');
     expect(ws.getIdentifier(second.uri)).toEqual('way/for/page-a');
@@ -124,7 +124,7 @@ describe('Identifier computation', () => {
     const third = createTestNote({
       uri: '/another/path/for/page-a.md',
     });
-    const ws = new FoamWorkspace('.md').set(first).set(second).set(third);
+    const ws = new LoamWorkspace('.md').set(first).set(second).set(third);
 
     expect(ws.getIdentifier(first.uri.withFragment('section name'))).toEqual(
       'to/page-a#section name'
@@ -138,7 +138,7 @@ describe('Identifier computation', () => {
     [['/family/car/todo', '/other/todo'], 'project/car/todo'],
     [[], 'todo'],
   ])('should find shortest identifier', (haystack, id) => {
-    expect(FoamWorkspace.getShortestIdentifier(needle, haystack)).toEqual(id);
+    expect(LoamWorkspace.getShortestIdentifier(needle, haystack)).toEqual(id);
   });
 
   it('should ignore same string in haystack', () => {
@@ -148,7 +148,7 @@ describe('Identifier computation', () => {
       '/other/todo',
       '/something/else',
     ];
-    const identifier = FoamWorkspace.getShortestIdentifier(needle, haystack);
+    const identifier = LoamWorkspace.getShortestIdentifier(needle, haystack);
     expect(identifier).toEqual('car/todo');
   });
 
@@ -165,12 +165,12 @@ describe('Identifier computation', () => {
       '/other/todo',
       '/something/else',
     ];
-    const identifier = FoamWorkspace.getShortestIdentifier(needle, haystack);
+    const identifier = LoamWorkspace.getShortestIdentifier(needle, haystack);
     expect(identifier).toEqual('project/car/todo');
   });
 
   it('should ignore elements from the exclude list', () => {
-    const workspace = new FoamWorkspace('.md');
+    const workspace = new LoamWorkspace('.md');
     const noteA = createTestNote({ uri: '/path/to/note-a.md' });
     const noteB = createTestNote({ uri: '/path/to/note-b.md' });
     const noteC = createTestNote({ uri: '/path/to/note-c.md' });

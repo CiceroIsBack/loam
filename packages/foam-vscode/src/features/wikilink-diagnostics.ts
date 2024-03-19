@@ -1,9 +1,9 @@
 import { debounce } from 'lodash';
 import * as vscode from 'vscode';
-import { Foam } from '../core/model/foam';
+import { Loam } from '../core/model/loam';
 import { Resource, ResourceParser } from '../core/model/note';
 import { Range } from '../core/model/range';
-import { FoamWorkspace } from '../core/model/workspace';
+import { LoamWorkspace } from '../core/model/workspace';
 import { MarkdownLink } from '../core/services/markdown-link';
 import { isNone } from '../utils';
 import {
@@ -16,7 +16,7 @@ import {
 const AMBIGUOUS_IDENTIFIER_CODE = 'ambiguous-identifier';
 const UNKNOWN_SECTION_CODE = 'unknown-section';
 
-interface FoamCommand<T> {
+interface LoamCommand<T> {
   name: string;
   execute: (params: T) => Promise<void>;
 }
@@ -28,11 +28,11 @@ interface FindIdentifierCommandArgs {
   amongst: vscode.Uri[];
 }
 
-const FIND_IDENTIFIER_COMMAND: FoamCommand<FindIdentifierCommandArgs> = {
-  name: 'foam:compute-identifier',
+const FIND_IDENTIFIER_COMMAND: LoamCommand<FindIdentifierCommandArgs> = {
+  name: 'loam:compute-identifier',
   execute: async ({ target, amongst, range, defaultExtension }) => {
     if (vscode.window.activeTextEditor) {
-      let identifier = FoamWorkspace.getShortestIdentifier(
+      let identifier = LoamWorkspace.getShortestIdentifier(
         target.path,
         amongst.map(uri => uri.path)
       );
@@ -53,8 +53,8 @@ interface ReplaceTextCommandArgs {
   value: string;
 }
 
-const REPLACE_TEXT_COMMAND: FoamCommand<ReplaceTextCommandArgs> = {
-  name: 'foam:replace-text',
+const REPLACE_TEXT_COMMAND: LoamCommand<ReplaceTextCommandArgs> = {
+  name: 'loam:replace-text',
   execute: async ({ range, value }) => {
     await vscode.window.activeTextEditor.edit(builder => {
       builder.replace(range, value);
@@ -64,15 +64,15 @@ const REPLACE_TEXT_COMMAND: FoamCommand<ReplaceTextCommandArgs> = {
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const collection = vscode.languages.createDiagnosticCollection('foam');
+  const collection = vscode.languages.createDiagnosticCollection('loam');
   const debouncedUpdateDiagnostics = debounce(updateDiagnostics, 500);
-  const foam = await foamPromise;
+  const loam = await loamPromise;
   if (vscode.window.activeTextEditor) {
     updateDiagnostics(
-      foam.workspace,
-      foam.services.parser,
+      loam.workspace,
+      loam.services.parser,
       vscode.window.activeTextEditor.document,
       collection
     );
@@ -81,8 +81,8 @@ export default async function activate(
     vscode.window.onDidChangeActiveTextEditor(editor => {
       if (editor) {
         updateDiagnostics(
-          foam.workspace,
-          foam.services.parser,
+          loam.workspace,
+          loam.services.parser,
           editor.document,
           collection
         );
@@ -90,15 +90,15 @@ export default async function activate(
     }),
     vscode.workspace.onDidChangeTextDocument(event => {
       debouncedUpdateDiagnostics(
-        foam.workspace,
-        foam.services.parser,
+        loam.workspace,
+        loam.services.parser,
         event.document,
         collection
       );
     }),
     vscode.languages.registerCodeActionsProvider(
       'markdown',
-      new IdentifierResolver(foam.workspace.defaultExtension),
+      new IdentifierResolver(loam.workspace.defaultExtension),
       {
         providedCodeActionKinds: IdentifierResolver.providedCodeActionKinds,
       }
@@ -115,7 +115,7 @@ export default async function activate(
 }
 
 export function updateDiagnostics(
-  workspace: FoamWorkspace,
+  workspace: LoamWorkspace,
   parser: ResourceParser,
   document: vscode.TextDocument,
   collection: vscode.DiagnosticCollection
@@ -138,7 +138,7 @@ export function updateDiagnostics(
             message: 'Resource identifier is ambiguous',
             range: toVsCodeRange(link.range),
             severity: vscode.DiagnosticSeverity.Warning,
-            source: 'Foam',
+            source: 'Loam',
             relatedInformation: targets.map(
               t =>
                 new vscode.DiagnosticRelatedInformation(
@@ -167,7 +167,7 @@ export function updateDiagnostics(
               message: `Cannot find section "${section}" in document, available sections are:`,
               range: toVsCodeRange(range),
               severity: vscode.DiagnosticSeverity.Warning,
-              source: 'Foam',
+              source: 'Loam',
               relatedInformation: resource.sections.map(
                 b =>
                   new vscode.DiagnosticRelatedInformation(

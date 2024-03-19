@@ -1,8 +1,8 @@
 import { URI } from '../../core/model/uri';
 import * as vscode from 'vscode';
-import { Foam } from '../../core/model/foam';
-import { FoamWorkspace } from '../../core/model/workspace';
-import { FoamTags } from '../../core/model/tags';
+import { Loam } from '../../core/model/loam';
+import { LoamWorkspace } from '../../core/model/workspace';
+import { LoamTags } from '../../core/model/tags';
 import {
   ResourceRangeTreeItem,
   ResourceTreeItem,
@@ -24,22 +24,22 @@ import {
 const TAG_SEPARATOR = '/';
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
-  const provider = new TagsProvider(foam.tags, foam.workspace);
-  const treeView = vscode.window.createTreeView('foam-vscode.tags-explorer', {
+  const loam = await loamPromise;
+  const provider = new TagsProvider(loam.tags, loam.workspace);
+  const treeView = vscode.window.createTreeView('loam-vscode.tags-explorer', {
     treeDataProvider: provider,
     showCollapseAll: true,
   });
   provider.refresh();
   const baseTitle = treeView.title;
-  treeView.title = baseTitle + ` (${foam.tags.tags.size})`;
+  treeView.title = baseTitle + ` (${loam.tags.tags.size})`;
   context.subscriptions.push(
     treeView,
-    foam.tags.onDidUpdate(() => {
+    loam.tags.onDidUpdate(() => {
       provider.refresh();
-      treeView.title = baseTitle + ` (${foam.tags.tags.size})`;
+      treeView.title = baseTitle + ` (${loam.tags.tags.size})`;
     }),
     vscode.window.onDidChangeActiveTextEditor(() => {
       if (provider.show.get() === 'for-current-file') {
@@ -47,7 +47,7 @@ export default async function activate(
       }
     }),
     vscode.commands.registerCommand(
-      `foam-vscode.views.${provider.providerId}.expand-all`,
+      `loam-vscode.views.${provider.providerId}.expand-all`,
       () =>
         expandAll(
           treeView,
@@ -62,12 +62,12 @@ export class TagsProvider extends FolderTreeProvider<TagTreeItem, string> {
   public providerId = 'tags-explorer';
   public show = new ContextMemento<'all' | 'for-current-file'>(
     new MapBasedMemento(),
-    `foam-vscode.views.${this.providerId}.show`,
+    `loam-vscode.views.${this.providerId}.show`,
     'all'
   );
   public groupBy = new ContextMemento<'off' | 'folder'>(
     new MapBasedMemento(),
-    `foam-vscode.views.${this.providerId}.group-by`,
+    `loam-vscode.views.${this.providerId}.group-by`,
     'folder'
   );
 
@@ -77,8 +77,8 @@ export class TagsProvider extends FolderTreeProvider<TagTreeItem, string> {
   }[];
 
   constructor(
-    private foamTags: FoamTags,
-    private workspace: FoamWorkspace,
+    private loamTags: LoamTags,
+    private workspace: LoamWorkspace,
     registerCommands: boolean = true
   ) {
     super();
@@ -87,28 +87,28 @@ export class TagsProvider extends FolderTreeProvider<TagTreeItem, string> {
     }
     this.disposables.push(
       vscode.commands.registerCommand(
-        `foam-vscode.views.${this.providerId}.show:all`,
+        `loam-vscode.views.${this.providerId}.show:all`,
         () => {
           this.show.update('all');
           this.refresh();
         }
       ),
       vscode.commands.registerCommand(
-        `foam-vscode.views.${this.providerId}.show:for-current-file`,
+        `loam-vscode.views.${this.providerId}.show:for-current-file`,
         () => {
           this.show.update('for-current-file');
           this.refresh();
         }
       ),
       vscode.commands.registerCommand(
-        `foam-vscode.views.${this.providerId}.group-by:folder`,
+        `loam-vscode.views.${this.providerId}.group-by:folder`,
         () => {
           this.groupBy.update('folder');
           this.refresh();
         }
       ),
       vscode.commands.registerCommand(
-        `foam-vscode.views.${this.providerId}.group-by:off`,
+        `loam-vscode.views.${this.providerId}.group-by:off`,
         () => {
           this.groupBy.update('off');
           this.refresh();
@@ -118,7 +118,7 @@ export class TagsProvider extends FolderTreeProvider<TagTreeItem, string> {
   }
 
   refresh(): void {
-    this.tags = [...this.foamTags.tags]
+    this.tags = [...this.loamTags.tags]
       .map(([tag, notes]) => ({ tag, notes }))
       .sort((a, b) => a.tag.localeCompare(b.tag));
     super.refresh();
@@ -140,7 +140,7 @@ export class TagsProvider extends FolderTreeProvider<TagTreeItem, string> {
   private countResourcesInSubtree(node: Folder<string>) {
     const nChildren = walk(
       node,
-      tag => this.foamTags.tags.get(tag)?.length ?? 0
+      tag => this.loamTags.tags.get(tag)?.length ?? 0
     ).reduce((acc, nResources) => acc + nResources, 0);
     return nChildren;
   }
@@ -160,7 +160,7 @@ export class TagsProvider extends FolderTreeProvider<TagTreeItem, string> {
     node: Folder<string>
   ): TagItem {
     const nChildren = this.countResourcesInSubtree(node);
-    const resources = this.foamTags.tags.get(value) ?? [];
+    const resources = this.loamTags.tags.get(value) ?? [];
     return new TagItem(node, nChildren, resources, parent);
   }
 

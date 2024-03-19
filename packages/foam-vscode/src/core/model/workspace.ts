@@ -7,7 +7,7 @@ import { ResourceProvider } from './provider';
 import { IDisposable } from '../common/lifecycle';
 import { IDataStore } from '../services/datastore';
 
-export class FoamWorkspace implements IDisposable {
+export class LoamWorkspace implements IDisposable {
   private onDidAddEmitter = new Emitter<Resource>();
   private onDidUpdateEmitter = new Emitter<{ old: Resource; new: Resource }>();
   private onDidDeleteEmitter = new Emitter<Resource>();
@@ -108,7 +108,7 @@ export class FoamWorkspace implements IDisposable {
       amongst.push(res.uri);
     }
 
-    let identifier = FoamWorkspace.getShortestIdentifier(
+    let identifier = LoamWorkspace.getShortestIdentifier(
       forResource.path,
       amongst.map(uri => uri.path)
     );
@@ -125,7 +125,7 @@ export class FoamWorkspace implements IDisposable {
     }
     let resource: Resource | null = null;
     const [path, fragment] = (reference as string).split('#');
-    if (FoamWorkspace.isIdentifier(path)) {
+    if (LoamWorkspace.isIdentifier(path)) {
       resource = this.listByIdentifier(path)[0];
     } else {
       const candidates = [path, path + this.defaultExtension];
@@ -245,8 +245,8 @@ export class FoamWorkspace implements IDisposable {
     providers: ResourceProvider[],
     dataStore: IDataStore,
     defaultExtension: string = '.md'
-  ): Promise<FoamWorkspace> {
-    const workspace = new FoamWorkspace(defaultExtension);
+  ): Promise<LoamWorkspace> {
+    const workspace = new LoamWorkspace(defaultExtension);
     await Promise.all(providers.map(p => workspace.registerProvider(p)));
     const files = await dataStore.list();
     await Promise.all(files.map(f => workspace.fetchAndSet(f)));

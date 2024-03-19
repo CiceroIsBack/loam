@@ -2,34 +2,34 @@
 
 import markdownItRegex from 'markdown-it-regex';
 import { isNone } from '../../utils';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { LoamWorkspace } from '../../core/model/workspace';
 import { Logger } from '../../core/utils/log';
 
-export const markdownItFoamTags = (
+export const markdownItLoamTags = (
   md: markdownit,
-  workspace: FoamWorkspace
+  workspace: LoamWorkspace
 ) => {
   return md.use(markdownItRegex, {
-    name: 'foam-tags',
+    name: 'loam-tags',
     regex: /(?<=^|\s)(#[0-9]*[\p{L}/_-][\p{L}\p{N}/_-]*)/u,
     replace: (tag: string) => {
       try {
         const resource = workspace.find(tag);
         if (isNone(resource)) {
-          return getFoamTag(tag);
+          return getLoamTag(tag);
         }
       } catch (e) {
         Logger.error(
           `Error while creating link for ${tag} in Preview panel`,
           e
         );
-        return getFoamTag(tag);
+        return getLoamTag(tag);
       }
     },
   });
 };
 
-const getFoamTag = (content: string) =>
-  `<span class='foam-tag'>${content}</span>`;
+const getLoamTag = (content: string) =>
+  `<span class='loam-tag'>${content}</span>`;
 
-export default markdownItFoamTags;
+export default markdownItLoamTags;

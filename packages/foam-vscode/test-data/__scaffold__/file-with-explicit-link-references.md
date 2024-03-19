@@ -2,6 +2,6 @@
 
 A Bug [^footerlink]. Here is [Another link][linkreference]
 
-[^footerlink]: https://foambubble.github.io/
+[^footerlink]: https://loambubble.github.io/
 
-[linkrefenrece]: https://foambubble.github.io/
+[linkrefenrece]: https://loambubble.github.io/

@@ -61,7 +61,7 @@ describe('Wikilink Note Embedding', () => {
   describe('Config Parsing', () => {
     it('should use preview.embedNoteType if an explicit modifier is not passed in', () => {
       jest
-        .spyOn(config, 'getFoamVsCodeConfig')
+        .spyOn(config, 'getLoamVsCodeConfig')
         .mockReturnValueOnce('full-card');
 
       const { noteScope, noteStyle } = retrieveNoteConfig(undefined);
@@ -71,7 +71,7 @@ describe('Wikilink Note Embedding', () => {
 
     it('should use explicit modifier over user settings if passed in', () => {
       jest
-        .spyOn(config, 'getFoamVsCodeConfig')
+        .spyOn(config, 'getLoamVsCodeConfig')
         .mockReturnValueOnce('full-inline')
         .mockReturnValueOnce('full-inline')
         .mockReturnValueOnce('full-inline');

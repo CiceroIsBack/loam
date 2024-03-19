@@ -68,7 +68,7 @@ export function createMarkdownParser(
     }
   }
 
-  const foamParser: ResourceParser = {
+  const loamParser: ResourceParser = {
     parse: (uri: URI, markdown: string): Resource => {
       Logger.debug('Parsing:', uri.toString());
       for (const plugin of plugins) {
@@ -148,13 +148,13 @@ export function createMarkdownParser(
           return resource;
         }
       }
-      const resource = foamParser.parse(uri, markdown);
+      const resource = loamParser.parse(uri, markdown);
       cache.set(uri, { checksum: actualChecksum, resource });
       return resource;
     },
   };
 
-  return isSome(cache) ? cachedParser : foamParser;
+  return isSome(cache) ? cachedParser : loamParser;
 }
 
 /**
@@ -166,7 +166,11 @@ export function createMarkdownParser(
 const getTextFromChildren = (root: Node): string => {
   let text = '';
   visit(root, node => {
-    if (node.type === 'text' || node.type === 'wikiLink') {
+    if (
+      node.type === 'text' ||
+      node.type === 'wikiLink' ||
+      node.type === 'taglink'
+    ) {
       text = text + ((node as any).value || '');
     }
   });
@@ -181,7 +185,7 @@ const tagsPlugin: ParserPlugin = {
       for (const tag of yamlTags) {
         note.tags.push({
           label: tag,
-          range: astPositionToFoamRange(node.position!),
+          range: astPositionToLoamRange(node.position!),
         });
       }
     }
@@ -190,7 +194,7 @@ const tagsPlugin: ParserPlugin = {
     if (node.type === 'text') {
       const tags = extractHashtags((node as any).value);
       for (const tag of tags) {
-        const start = astPointToFoamPosition(node.position!.start);
+        const start = astPointToLoamPosition(node.position!.start);
         start.character = start.character + tag.offset;
         const end: Position = {
           line: start.line,
@@ -199,6 +203,13 @@ const tagsPlugin: ParserPlugin = {
         note.tags.push({
           label: tag.label,
           range: Range.createFromPosition(start, end),
+        });
+
+        note.links.push({
+          type: 'taglink',
+          rawText: `#${tag.label}`,
+          range: Range.createFromPosition(start, end),
+          isEmbed: false,
         });
       }
     }
@@ -218,7 +229,7 @@ const sectionsPlugin: ParserPlugin = {
       if (!label || !level) {
         return;
       }
-      const start = astPositionToFoamRange(node.position!).start;
+      const start = astPositionToLoamRange(node.position!).start;
 
       // Close all the sections that are not parents of the current section
       while (
@@ -238,7 +249,7 @@ const sectionsPlugin: ParserPlugin = {
   },
   onDidVisitTree: (tree, note) => {
     const end = Position.create(
-      astPointToFoamPosition(tree.position.end).line + 1,
+      astPointToLoamPosition(tree.position.end).line + 1,
       0
     );
     // Close all the remaining sections
@@ -288,7 +299,7 @@ const aliasesPlugin: ParserPlugin = {
       for (const alias of aliases) {
         note.aliases.push({
           title: alias,
-          range: astPositionToFoamRange(node.position!),
+          range: astPositionToLoamRange(node.position!),
         });
       }
     }
@@ -316,13 +327,25 @@ const wikilinkPlugin: ParserPlugin = {
             node.position.end.line - 1,
             node.position.end.column - 1
           )
-        : astPositionToFoamRange(node.position!);
+        : astPositionToLoamRange(node.position!);
 
       note.links.push({
         type: 'wikilink',
         rawText: literalContent,
         range,
         isEmbed,
+      });
+    }
+    if (note.type === 'taglink') {
+      const literalContent = noteSource.substring(
+        node.position!.start.offset!,
+        node.position!.end.offset!
+      );
+      note.links.push({
+        type: 'taglink',
+        rawText: literalContent,
+        range: astPositionToLoamRange(node.position!),
+        isEmbed: false,
       });
     }
     if (node.type === 'link' || node.type === 'image') {
@@ -338,7 +361,7 @@ const wikilinkPlugin: ParserPlugin = {
       note.links.push({
         type: 'link',
         rawText: literalContent,
-        range: astPositionToFoamRange(node.position!),
+        range: astPositionToLoamRange(node.position!),
         isEmbed: literalContent.startsWith('!'),
       });
     }
@@ -353,13 +376,13 @@ const definitionsPlugin: ParserPlugin = {
         label: (node as any).label,
         url: (node as any).url,
         title: (node as any).title,
-        range: astPositionToFoamRange(node.position!),
+        range: astPositionToLoamRange(node.position!),
       });
     }
   },
   onDidVisitTree: (tree, note) => {
-    const end = astPointToFoamPosition(tree.position.end);
-    note.definitions = getFoamDefinitions(note.definitions, end);
+    const end = astPointToLoamPosition(tree.position.end);
+    note.definitions = getLoamDefinitions(note.definitions, end);
   },
 };
 
@@ -378,12 +401,12 @@ const handleError = (
   );
 };
 
-function getFoamDefinitions(
+function getLoamDefinitions(
   defs: NoteLinkDefinition[],
   fileEndPoint: Position
 ): NoteLinkDefinition[] {
   let previousLine = fileEndPoint.line;
-  const foamDefinitions = [];
+  const loamDefinitions = [];
 
   // walk through each definition in reverse order
   // (last one first)
@@ -396,28 +419,28 @@ function getFoamDefinitions(
       break;
     }
 
-    foamDefinitions.unshift(def);
+    loamDefinitions.unshift(def);
     previousLine = def.range!.end.line;
   }
 
-  return foamDefinitions;
+  return loamDefinitions;
 }
 
 /**
  * Converts the 1-index Point object into the VS Code 0-index Position object
  * @param point ast Point (1-indexed)
- * @returns Foam Position  (0-indexed)
+ * @returns Loam Position  (0-indexed)
  */
-const astPointToFoamPosition = (point: Point): Position => {
+const astPointToLoamPosition = (point: Point): Position => {
   return Position.create(point.line - 1, point.column - 1);
 };
 
 /**
  * Converts the 1-index Position object into the VS Code 0-index Range object
  * @param position an ast Position object (1-indexed)
- * @returns Foam Range  (0-indexed)
+ * @returns Loam Range  (0-indexed)
  */
-const astPositionToFoamRange = (pos: AstPosition): Range =>
+const astPositionToLoamRange = (pos: AstPosition): Range =>
   Range.create(
     pos.start.line - 1,
     pos.start.column - 1,

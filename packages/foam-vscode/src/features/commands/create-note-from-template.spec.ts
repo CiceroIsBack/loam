@@ -12,7 +12,7 @@ describe('create-note-from-template command', () => {
       .spyOn(window, 'showQuickPick')
       .mockImplementationOnce(jest.fn(() => Promise.resolve(undefined)));
 
-    await commands.executeCommand('foam-vscode.create-note-from-template');
+    await commands.executeCommand('loam-vscode.create-note-from-template');
 
     expect(spy).toHaveBeenCalledWith(['Yes', 'No'], {
       placeHolder:
@@ -22,12 +22,12 @@ describe('create-note-from-template command', () => {
 
   it('offers to pick which template to use', async () => {
     const templateA = await createFile('Template A', [
-      '.foam',
+      '.loam',
       'templates',
       'template-a.md',
     ]);
     const templateB = await createFile('Template A', [
-      '.foam',
+      '.loam',
       'templates',
       'template-b.md',
     ]);
@@ -36,7 +36,7 @@ describe('create-note-from-template command', () => {
       .spyOn(window, 'showQuickPick')
       .mockImplementationOnce(jest.fn(() => Promise.resolve(undefined)));
 
-    await commands.executeCommand('foam-vscode.create-note-from-template');
+    await commands.executeCommand('loam-vscode.create-note-from-template');
 
     expect(spy).toHaveBeenCalledWith(
       [
@@ -55,21 +55,21 @@ describe('create-note-from-template command', () => {
   it('Uses template metadata to improve dialog box', async () => {
     const templateA = await createFile(
       `---
-foam_template:
+loam_template:
   name: My Template
   description: My Template description
 ---
 
 Template A
       `,
-      ['.foam', 'templates', 'template-a.md']
+      ['.loam', 'templates', 'template-a.md']
     );
 
     const spy = jest
       .spyOn(window, 'showQuickPick')
       .mockImplementationOnce(jest.fn(() => Promise.resolve(undefined)));
 
-    await commands.executeCommand('foam-vscode.create-note-from-template');
+    await commands.executeCommand('loam-vscode.create-note-from-template');
 
     expect(spy).toHaveBeenCalledWith(
       [

@@ -1,17 +1,17 @@
 import { Memento, Position, Range, Uri, commands } from 'vscode';
-import { Position as FoamPosition } from '../core/model/position';
-import { Range as FoamRange } from '../core/model/range';
-import { URI as FoamURI } from '../core/model/uri';
+import { Position as LoamPosition } from '../core/model/position';
+import { Range as LoamRange } from '../core/model/range';
+import { URI as LoamURI } from '../core/model/uri';
 
-export const toVsCodePosition = (p: FoamPosition): Position =>
+export const toVsCodePosition = (p: LoamPosition): Position =>
   new Position(p.line, p.character);
 
-export const toVsCodeRange = (r: FoamRange): Range =>
+export const toVsCodeRange = (r: LoamRange): Range =>
   new Range(r.start.line, r.start.character, r.end.line, r.end.character);
 
-export const toVsCodeUri = (u: FoamURI): Uri => Uri.from(u);
+export const toVsCodeUri = (u: LoamURI): Uri => Uri.from(u);
 
-export const fromVsCodeUri = (u: Uri): FoamURI => FoamURI.parse(u.toString());
+export const fromVsCodeUri = (u: Uri): LoamURI => LoamURI.parse(u.toString());
 
 /**
  * A class that wraps context value, syncs it via setContext, and provides a typed interface to it.

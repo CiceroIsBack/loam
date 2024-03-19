@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Foam } from '../../core/model/foam';
+import { Loam } from '../../core/model/loam';
 import { createMatcherAndDataStore } from '../../services/editor';
 import { getPlaceholdersConfig } from '../../settings';
 import { GroupedResourcesTreeDataProvider } from './utils/grouped-resources-tree-data-provider';
@@ -11,27 +11,27 @@ import {
 } from './utils/tree-view-utils';
 import { IMatcher } from '../../core/services/datastore';
 import { ContextMemento, fromVsCodeUri } from '../../utils/vsc-utils';
-import { FoamGraph } from '../../core/model/graph';
+import { LoamGraph } from '../../core/model/graph';
 import { URI } from '../../core/model/uri';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { LoamWorkspace } from '../../core/model/workspace';
 import { FolderTreeItem } from './utils/folder-tree-provider';
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
   const { matcher } = await createMatcherAndDataStore(
     getPlaceholdersConfig().exclude
   );
   const provider = new PlaceholderTreeView(
     context.globalState,
-    foam.workspace,
-    foam.graph,
+    loam.workspace,
+    loam.graph,
     matcher
   );
 
-  const treeView = vscode.window.createTreeView('foam-vscode.placeholders', {
+  const treeView = vscode.window.createTreeView('loam-vscode.placeholders', {
     treeDataProvider: provider,
     showCollapseAll: true,
   });
@@ -42,14 +42,14 @@ export default async function activate(
   context.subscriptions.push(
     treeView,
     provider,
-    foam.graph.onDidUpdate(() => {
+    loam.graph.onDidUpdate(() => {
       provider.refresh();
     }),
     provider.onDidChangeTreeData(() => {
       treeView.title = baseTitle + ` (${provider.nValues})`;
     }),
     vscode.commands.registerCommand(
-      `foam-vscode.views.placeholders.expand-all`,
+      `loam-vscode.views.placeholders.expand-all`,
       () =>
         expandAll(
           treeView,
@@ -70,27 +70,27 @@ export default async function activate(
 export class PlaceholderTreeView extends GroupedResourcesTreeDataProvider {
   public show = new ContextMemento<'all' | 'for-current-file'>(
     this.state,
-    `foam-vscode.views.${this.providerId}.show`,
+    `loam-vscode.views.${this.providerId}.show`,
     'all'
   );
 
   public constructor(
     state: vscode.Memento,
-    private workspace: FoamWorkspace,
-    private graph: FoamGraph,
+    private workspace: LoamWorkspace,
+    private graph: LoamGraph,
     matcher: IMatcher
   ) {
     super('placeholders', state, matcher);
     this.disposables.push(
       vscode.commands.registerCommand(
-        `foam-vscode.views.${this.providerId}.show:all`,
+        `loam-vscode.views.${this.providerId}.show:all`,
         () => {
           this.show.update('all');
           this.refresh();
         }
       ),
       vscode.commands.registerCommand(
-        `foam-vscode.views.${this.providerId}.show:for-current-file`,
+        `loam-vscode.views.${this.providerId}.show:for-current-file`,
         () => {
           this.show.update('for-current-file');
           this.refresh();

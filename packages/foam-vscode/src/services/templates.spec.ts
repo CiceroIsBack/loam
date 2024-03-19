@@ -7,7 +7,7 @@ import {
   deleteFile,
   getUriInWorkspace,
   showInEditor,
-  withModifiedFoamConfiguration,
+  withModifiedLoamConfiguration,
 } from '../test/test-utils-vscode';
 import { Resolver } from './variable-resolver';
 import { fileExists } from './editor';
@@ -22,7 +22,7 @@ describe('Create note from template', () => {
   describe('User flow', () => {
     it('should resolve the path using the config when path is derived from note title', async () => {
       const templateA = await createFile('Template A', [
-        '.foam',
+        '.loam',
         'templates',
         'template-a.md',
       ]);
@@ -36,7 +36,7 @@ describe('Create note from template', () => {
         'note-a.md',
       ]);
       await showInEditor(noteA.uri);
-      await withModifiedFoamConfiguration(
+      await withModifiedLoamConfiguration(
         'files.newNotePath',
         'currentDir',
         async () => {
@@ -50,7 +50,7 @@ describe('Create note from template', () => {
           await deleteFile(result.uri);
         }
       );
-      await withModifiedFoamConfiguration(
+      await withModifiedLoamConfiguration(
         'files.newNotePath',
         'root',
         async () => {
@@ -72,7 +72,7 @@ describe('Create note from template', () => {
 
     it('should ask a user to confirm the path if note already exists', async () => {
       const templateA = await createFile('Template A', [
-        '.foam',
+        '.loam',
         'templates',
         'template-a.md',
       ]);
@@ -100,11 +100,11 @@ describe('Create note from template', () => {
       const uri = getUriInWorkspace();
       const templateA = await createFile(
         `---
-foam_template: # foam template metadata
+loam_template: # loam template metadata
   filepath: ${uri.toFsPath()}
 ---
 `,
-        ['.foam', 'templates', 'template-with-path.md']
+        ['.loam', 'templates', 'template-with-path.md']
       );
       const spy = jest
         .spyOn(window, 'showInputBox')
@@ -122,7 +122,7 @@ foam_template: # foam template metadata
 
     it('should focus the editor on the newly created note', async () => {
       const templateA = await createFile('Template A', [
-        '.foam',
+        '.loam',
         'templates',
         'template-a.md',
       ]);
@@ -144,7 +144,7 @@ foam_template: # foam template metadata
   it('should expand variables when using a template', async () => {
     // eslint-disable-next-line no-template-curly-in-string
     const template = await createFile('${FOAM_DATE_YEAR}', [
-      '.foam',
+      '.loam',
       'templates',
       'template-with-variables.md',
     ]);
@@ -166,7 +166,7 @@ foam_template: # foam template metadata
   describe('Creation with active text selection', () => {
     it('should open created note in a new column if there was a selection', async () => {
       const templateA = await createFile('Template A', [
-        '.foam',
+        '.loam',
         'templates',
         'template-a.md',
       ]);
@@ -196,7 +196,7 @@ foam_template: # foam template metadata
       const template = await createFile(
         // eslint-disable-next-line no-template-curly-in-string
         'Hello ${FOAM_SELECTED_TEXT} ${FOAM_SELECTED_TEXT}',
-        ['.foam', 'templates', 'template-with-selection.md']
+        ['.loam', 'templates', 'template-with-selection.md']
       );
       const file = await createFile('This is my first file: World');
       const { editor } = await showInEditor(file.uri);

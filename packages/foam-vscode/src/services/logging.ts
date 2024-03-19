@@ -1,18 +1,18 @@
 import { window, commands, ExtensionContext } from 'vscode';
 import { IDisposable } from '../core/common/lifecycle';
 import { BaseLogger, ILogger, LogLevel } from '../core/utils/log';
-import { getFoamLoggerLevel } from '../settings';
+import { getLoamLoggerLevel } from '../settings';
 
 export interface VsCodeLogger extends ILogger, IDisposable {
   show();
 }
 
 export class VsCodeOutputLogger extends BaseLogger implements VsCodeLogger {
-  private channel = window.createOutputChannel('Foam');
+  private channel = window.createOutputChannel('Loam');
 
   constructor() {
-    super(getFoamLoggerLevel());
-    this.channel.appendLine('Foam Logging: ' + getFoamLoggerLevel());
+    super(getLoamLoggerLevel());
+    this.channel.appendLine('Loam Logging: ' + getLoamLoggerLevel());
   }
 
   log(lvl: LogLevel, msg?: any, ...extra: any[]): void {
@@ -43,7 +43,7 @@ export const exposeLogger = (
   logger: VsCodeLogger
 ): void => {
   context.subscriptions.push(
-    commands.registerCommand('foam-vscode.set-log-level', async () => {
+    commands.registerCommand('loam-vscode.set-log-level', async () => {
       const items: LogLevel[] = ['debug', 'info', 'warn', 'error'];
       const level = await window.showQuickPick(
         items.map(item => ({

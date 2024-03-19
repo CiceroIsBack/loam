@@ -1,7 +1,7 @@
 import { debounce } from 'lodash';
 import { ResourceLink } from './note';
 import { URI } from './uri';
-import { FoamWorkspace } from './workspace';
+import { LoamWorkspace } from './workspace';
 import { IDisposable } from '../common/lifecycle';
 import { Logger, withTiming } from '../utils/log';
 import { Emitter } from '../common/event';
@@ -15,7 +15,7 @@ export type Connection = {
 const pathToPlaceholderId = (value: string) => value;
 const uriToPlaceholderId = (uri: URI) => pathToPlaceholderId(uri.path);
 
-export class FoamGraph implements IDisposable {
+export class LoamGraph implements IDisposable {
   /**
    * Placehoders by key / slug / value
    */
@@ -37,7 +37,7 @@ export class FoamGraph implements IDisposable {
    */
   private disposables: IDisposable[] = [];
 
-  constructor(private readonly workspace: FoamWorkspace) {}
+  constructor(private readonly workspace: LoamWorkspace) {}
 
   public contains(uri: URI): boolean {
     return this.getConnections(uri).length > 0;
@@ -76,14 +76,14 @@ export class FoamGraph implements IDisposable {
    * @param workspace the target workspace
    * @param keepMonitoring whether to recompute the links when the workspace changes
    * @param debounceFor how long to wait between change detection and graph update
-   * @returns the FoamGraph
+   * @returns the LoamGraph
    */
   public static fromWorkspace(
-    workspace: FoamWorkspace,
+    workspace: LoamWorkspace,
     keepMonitoring = false,
     debounceFor = 0
-  ): FoamGraph {
-    const graph = new FoamGraph(workspace);
+  ): LoamGraph {
+    const graph = new LoamGraph(workspace);
     graph.update();
     if (keepMonitoring) {
       const updateGraph =

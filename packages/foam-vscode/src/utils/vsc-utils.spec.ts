@@ -2,7 +2,7 @@ import { Uri } from 'vscode';
 import { fromVsCodeUri, toVsCodeUri } from './vsc-utils';
 
 describe('URI conversion', () => {
-  it('converts between Foam and VS Code URI', () => {
+  it('converts between Loam and VS Code URI', () => {
     const vsUnixUri = Uri.file('/this/is/a/path');
     const fUnixUri = fromVsCodeUri(vsUnixUri);
     expect(toVsCodeUri(fUnixUri)).toEqual(expect.objectContaining(fUnixUri));

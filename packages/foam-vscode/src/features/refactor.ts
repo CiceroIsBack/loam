@@ -1,20 +1,20 @@
 import * as vscode from 'vscode';
-import { Foam } from '../core/model/foam';
+import { Loam } from '../core/model/loam';
 import { MarkdownLink } from '../core/services/markdown-link';
 import { Logger } from '../core/utils/log';
 import { isAbsolute } from '../core/utils/path';
-import { getFoamVsCodeConfig } from '../services/config';
+import { getLoamVsCodeConfig } from '../services/config';
 import { fromVsCodeUri, toVsCodeRange, toVsCodeUri } from '../utils/vsc-utils';
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
 
   context.subscriptions.push(
     vscode.workspace.onWillRenameFiles(async e => {
-      if (!getFoamVsCodeConfig<boolean>('links.sync.enable')) {
+      if (!getLoamVsCodeConfig<boolean>('links.sync.enable')) {
         return;
       }
       const renameEdits = new vscode.WorkspaceEdit();
@@ -24,16 +24,31 @@ export default async function activate(
           vscode.FileType.Directory
         ) {
           vscode.window.showWarningMessage(
-            'Foam: Updating links on directory rename is not supported.'
+            'Loam: Updating links on directory rename is not supported.'
           );
           continue;
         }
-        const connections = foam.graph.getBacklinks(fromVsCodeUri(oldUri));
+        const connections = loam.graph.getBacklinks(fromVsCodeUri(oldUri));
         connections.forEach(async connection => {
           const { target } = MarkdownLink.analyzeLink(connection.link);
           switch (connection.link.type) {
             case 'wikilink': {
-              const identifier = foam.workspace.getIdentifier(
+              const identifier = loam.workspace.getIdentifier(
+                fromVsCodeUri(newUri),
+                [fromVsCodeUri(oldUri)]
+              );
+              const edit = MarkdownLink.createUpdateLinkEdit(connection.link, {
+                target: identifier,
+              });
+              renameEdits.replace(
+                toVsCodeUri(connection.source),
+                toVsCodeRange(edit.range),
+                edit.newText
+              );
+              break;
+            }
+            case 'taglink': {
+              const identifier = loam.workspace.getIdentifier(
                 fromVsCodeUri(newUri),
                 [fromVsCodeUri(oldUri)]
               );
@@ -101,7 +116,7 @@ export default async function activate(
       } catch (e) {
         Logger.error('Error while updating references to file', e);
         vscode.window.showErrorMessage(
-          `Foam couldn't update the links to ${vscode.workspace.asRelativePath(
+          `Loam couldn't update the links to ${vscode.workspace.asRelativePath(
             e.newUri
           )}. Check the logs for error details.`
         );

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { Foam } from '../core/model/foam';
-import { FoamGraph } from '../core/model/graph';
+import { Loam } from '../core/model/loam';
+import { LoamGraph } from '../core/model/graph';
 import { Resource } from '../core/model/note';
 import { URI } from '../core/model/uri';
-import { FoamWorkspace } from '../core/model/workspace';
-import { getFoamVsCodeConfig } from '../services/config';
+import { LoamWorkspace } from '../core/model/workspace';
+import { getLoamVsCodeConfig } from '../services/config';
 import { getNoteTooltip, mdDocSelector } from '../utils';
 import { fromVsCodeUri, toVsCodeUri } from '../utils/vsc-utils';
 
@@ -13,8 +13,8 @@ export const linkCommitCharacters = ['#', '|'];
 export const sectionCommitCharacters = ['|'];
 
 const COMPLETION_CURSOR_MOVE = {
-  command: 'foam-vscode.completion-move-cursor',
-  title: 'Foam: Move cursor after completion',
+  command: 'loam-vscode.completion-move-cursor',
+  title: 'Loam: Move cursor after completion',
 };
 
 export const WIKILINK_REGEX = /\[\[[^[\]]*(?!.*\]\])/;
@@ -22,25 +22,25 @@ export const SECTION_REGEX = /\[\[([^[\]]*#(?!.*\]\]))/;
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
       mdDocSelector,
-      new WikilinkCompletionProvider(foam.workspace, foam.graph),
+      new WikilinkCompletionProvider(loam.workspace, loam.graph),
       '['
     ),
     vscode.languages.registerCompletionItemProvider(
       mdDocSelector,
-      new SectionCompletionProvider(foam.workspace),
+      new SectionCompletionProvider(loam.workspace),
       '#'
     ),
 
     /**
      * always jump to the closing bracket, but jump back the cursor when commit
      * by alias divider `|` and section divider `#`
-     * See https://github.com/foambubble/foam/issues/962,
+     * See https://github.com/loambubble/loam/issues/962,
      */
     vscode.commands.registerCommand(
       COMPLETION_CURSOR_MOVE.command,
@@ -90,7 +90,7 @@ export default async function activate(
 export class SectionCompletionProvider
   implements vscode.CompletionItemProvider<vscode.CompletionItem>
 {
-  constructor(private ws: FoamWorkspace) {}
+  constructor(private ws: LoamWorkspace) {}
 
   provideCompletionItems(
     document: vscode.TextDocument,
@@ -101,7 +101,7 @@ export class SectionCompletionProvider
       .text.substr(0, position.character);
 
     // Requires autocomplete only if cursorPrefix matches `[[` that NOT ended by `]]`.
-    // See https://github.com/foambubble/foam/pull/596#issuecomment-825748205 for details.
+    // See https://github.com/loambubble/loam/pull/596#issuecomment-825748205 for details.
     const match = cursorPrefix.match(SECTION_REGEX);
 
     if (!match) {
@@ -151,7 +151,7 @@ export class SectionCompletionProvider
 export class WikilinkCompletionProvider
   implements vscode.CompletionItemProvider<vscode.CompletionItem>
 {
-  constructor(private ws: FoamWorkspace, private graph: FoamGraph) {}
+  constructor(private ws: LoamWorkspace, private graph: LoamGraph) {}
 
   provideCompletionItems(
     document: vscode.TextDocument,
@@ -162,7 +162,7 @@ export class WikilinkCompletionProvider
       .text.substr(0, position.character);
 
     // Requires autocomplete only if cursorPrefix matches `[[` that NOT ended by `]]`.
-    // See https://github.com/foambubble/foam/pull/596#issuecomment-825748205 for details.
+    // See https://github.com/loambubble/loam/pull/596#issuecomment-825748205 for details.
     const requiresAutocomplete = cursorPrefix.match(WIKILINK_REGEX);
     if (!requiresAutocomplete || requiresAutocomplete[0].indexOf('#') >= 0) {
       return null;
@@ -212,6 +212,11 @@ export class WikilinkCompletionProvider
       item.insertText = useAlias
         ? `${identifier}|${resource.title}`
         : identifier;
+
+      if (item.insertText.indexOf('___') !== -1) {
+        item.insertText = item.insertText.replace('___', '/');
+      }
+
       item.commitCharacters = useAlias ? [] : linkCommitCharacters;
       item.range = replacementRange;
       item.command = COMPLETION_CURSOR_MOVE;
@@ -240,7 +245,7 @@ export class WikilinkCompletionProvider
           uri.path,
           vscode.CompletionItemKind.Interface
         );
-        item.insertText = uri.path;
+        item.insertText = uri.path.replace('___', '/');
         item.command = COMPLETION_CURSOR_MOVE;
         item.range = replacementRange;
         return item;
@@ -282,12 +287,12 @@ class ResourceCompletionItem extends vscode.CompletionItem {
 
 function getCompletionLabelSetting() {
   const labelStyle: 'path' | 'title' | 'identifier' =
-    getFoamVsCodeConfig('completion.label');
+    getLoamVsCodeConfig('completion.label');
   return labelStyle;
 }
 
 function getCompletionAliasSetting() {
-  const aliasStyle: 'never' | 'whenPathDiffersFromTitle' = getFoamVsCodeConfig(
+  const aliasStyle: 'never' | 'whenPathDiffersFromTitle' = getLoamVsCodeConfig(
     'completion.useAlias'
   );
   return aliasStyle;

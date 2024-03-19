@@ -2,17 +2,17 @@ import * as vscode from 'vscode';
 import { TextDecoder } from 'util';
 import { getGraphStyle, getTitleMaxLength } from '../../settings';
 import { isSome } from '../../utils';
-import { Foam } from '../../core/model/foam';
+import { Loam } from '../../core/model/loam';
 import { Logger } from '../../core/utils/log';
 import { fromVsCodeUri } from '../../utils/vsc-utils';
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
   let panel: vscode.WebviewPanel | undefined = undefined;
   vscode.workspace.onDidChangeConfiguration(event => {
-    if (event.affectsConfiguration('foam.graph.style')) {
+    if (event.affectsConfiguration('loam.graph.style')) {
       const style = getGraphStyle();
       panel.webview.postMessage({
         type: 'didUpdateStyle',
@@ -21,20 +21,20 @@ export default async function activate(
     }
   });
 
-  vscode.commands.registerCommand('foam-vscode.show-graph', async () => {
+  vscode.commands.registerCommand('loam-vscode.show-graph', async () => {
     if (panel) {
       const columnToShowIn = vscode.window.activeTextEditor
         ? vscode.window.activeTextEditor.viewColumn
         : undefined;
       panel.reveal(columnToShowIn);
     } else {
-      const foam = await foamPromise;
-      panel = await createGraphPanel(foam, context);
-      const onFoamChanged = _ => {
-        updateGraph(panel, foam);
+      const loam = await loamPromise;
+      panel = await createGraphPanel(loam, context);
+      const onLoamChanged = _ => {
+        updateGraph(panel, loam);
       };
 
-      const noteUpdatedListener = foam.graph.onDidUpdate(onFoamChanged);
+      const noteUpdatedListener = loam.graph.onDidUpdate(onLoamChanged);
       panel.onDidDispose(() => {
         noteUpdatedListener.dispose();
         panel = undefined;
@@ -42,7 +42,7 @@ export default async function activate(
 
       vscode.window.onDidChangeActiveTextEditor(e => {
         if (e?.document?.uri?.scheme === 'file') {
-          const note = foam.workspace.get(fromVsCodeUri(e.document.uri));
+          const note = loam.workspace.get(fromVsCodeUri(e.document.uri));
           if (isSome(note)) {
             panel.webview.postMessage({
               type: 'didSelectNote',
@@ -55,21 +55,21 @@ export default async function activate(
   });
 }
 
-function updateGraph(panel: vscode.WebviewPanel, foam: Foam) {
-  const graph = generateGraphData(foam);
+function updateGraph(panel: vscode.WebviewPanel, loam: Loam) {
+  const graph = generateGraphData(loam);
   panel.webview.postMessage({
     type: 'didUpdateGraphData',
     payload: graph,
   });
 }
 
-function generateGraphData(foam: Foam) {
+function generateGraphData(loam: Loam) {
   const graph = {
     nodeInfo: {},
     edges: new Set(),
   };
 
-  foam.workspace.list().forEach(n => {
+  loam.workspace.list().forEach(n => {
     const type = n.type === 'note' ? n.properties.type ?? 'note' : n.type;
     const title = n.type === 'note' ? n.title : n.uri.getBasename();
     graph.nodeInfo[n.uri.path] = {
@@ -81,7 +81,7 @@ function generateGraphData(foam: Foam) {
       tags: n.tags,
     };
   });
-  foam.graph.getAllConnections().forEach(c => {
+  loam.graph.getAllConnections().forEach(c => {
     graph.edges.add({
       source: c.source.path,
       target: c.target.path,
@@ -111,10 +111,10 @@ function cutTitle(title: string): string {
   return title;
 }
 
-async function createGraphPanel(foam: Foam, context: vscode.ExtensionContext) {
+async function createGraphPanel(loam: Loam, context: vscode.ExtensionContext) {
   const panel = vscode.window.createWebviewPanel(
-    'foam-graph',
-    'Foam Graph',
+    'loam-graph',
+    'Loam Graph',
     vscode.ViewColumn.Two,
     {
       enableScripts: true,
@@ -133,12 +133,12 @@ async function createGraphPanel(foam: Foam, context: vscode.ExtensionContext) {
             type: 'didUpdateStyle',
             payload: styles,
           });
-          updateGraph(panel, foam);
+          updateGraph(panel, loam);
           break;
         }
         case 'webviewDidSelectNode': {
           const noteUri = vscode.Uri.parse(message.payload);
-          const selectedNote = foam.workspace.get(fromVsCodeUri(noteUri));
+          const selectedNote = loam.workspace.get(fromVsCodeUri(noteUri));
 
           if (isSome(selectedNote)) {
             vscode.commands.executeCommand(

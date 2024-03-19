@@ -1,7 +1,7 @@
 import { ExtensionContext } from 'vscode';
-import { Foam } from './core/model/foam';
+import { Loam } from './core/model/loam';
 
-export type FoamFeature = (
+export type LoamFeature = (
   context: ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) => Promise<any> | void;

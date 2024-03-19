@@ -2,7 +2,7 @@ import dateFormat from 'dateformat';
 import { focusNote } from './utils';
 import { URI } from './core/model/uri';
 import { NoteFactory } from './services/templates';
-import { getFoamVsCodeConfig } from './services/config';
+import { getLoamVsCodeConfig } from './services/config';
 import { asAbsoluteWorkspaceUri } from './services/editor';
 
 /**
@@ -30,7 +30,7 @@ export async function openDailyNoteFor(date?: Date) {
 /**
  * Get the daily note file path.
  *
- * This function first checks the `foam.openDailyNote.directory` configuration string,
+ * This function first checks the `loam.openDailyNote.directory` configuration string,
  * defaulting to the current directory.
  *
  * In the case that the directory path is not absolute,
@@ -40,7 +40,7 @@ export async function openDailyNoteFor(date?: Date) {
  * @returns The path to the daily note file.
  */
 export function getDailyNotePath(date: Date): URI {
-  const folder = getFoamVsCodeConfig<string>('openDailyNote.directory') ?? '.';
+  const folder = getLoamVsCodeConfig<string>('openDailyNote.directory') ?? '.';
   const dailyNoteDirectory = asAbsoluteWorkspaceUri(URI.file(folder));
   const dailyNoteFilename = getDailyNoteFileName(date);
   return dailyNoteDirectory.joinPath(dailyNoteFilename);
@@ -50,17 +50,17 @@ export function getDailyNotePath(date: Date): URI {
  * Get the daily note filename (basename) to use.
  *
  * Fetch the filename format and extension from
- * `foam.openDailyNote.filenameFormat` and
- * `foam.openDailyNote.fileExtension`, respectively.
+ * `loam.openDailyNote.filenameFormat` and
+ * `loam.openDailyNote.fileExtension`, respectively.
  *
  * @param date A given date to be formatted as filename.
  * @returns The daily note's filename.
  */
 export function getDailyNoteFileName(date: Date): string {
-  const filenameFormat: string = getFoamVsCodeConfig(
+  const filenameFormat: string = getLoamVsCodeConfig(
     'openDailyNote.filenameFormat'
   );
-  const fileExtension: string = getFoamVsCodeConfig(
+  const fileExtension: string = getLoamVsCodeConfig(
     'openDailyNote.fileExtension'
   );
 
@@ -78,15 +78,12 @@ export function getDailyNoteFileName(date: Date): string {
  */
 export async function createDailyNoteIfNotExists(targetDate: Date) {
   const pathFromLegacyConfiguration = getDailyNotePath(targetDate);
-  const titleFormat: string =
-    getFoamVsCodeConfig('openDailyNote.titleFormat') ??
-    getFoamVsCodeConfig('openDailyNote.filenameFormat');
 
   const templateFallbackText = `---
-foam_template:
+loam_template:
   filepath: "${pathFromLegacyConfiguration.toFsPath().replace(/\\/g, '\\\\')}"
 ---
-# ${dateFormat(targetDate, titleFormat, false)}
+
 `;
 
   return await NoteFactory.createFromDailyNoteTemplate(

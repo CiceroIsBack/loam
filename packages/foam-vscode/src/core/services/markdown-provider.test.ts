@@ -80,7 +80,7 @@ describe('Link resolution', () => {
       expect(ws.resolveLink(noteA, noteA.links[1])).toEqual(noteB3.uri);
     });
 
-    it('should resolve Foam wikilinks', () => {
+    it('should resolve Loam wikilinks', () => {
       const workspace = createTestWorkspace();
       const noteA = createNoteFromMarkdown(
         'Link to [[two/page b]] and [[one/page b]]',

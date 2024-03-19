@@ -27,7 +27,7 @@ describe('create-note command', () => {
       .spyOn(window, 'showInputBox')
       .mockImplementationOnce(jest.fn(() => Promise.resolve('Test note')));
 
-    await commands.executeCommand('foam-vscode.create-note');
+    await commands.executeCommand('loam-vscode.create-note');
     expect(spy).toHaveBeenCalled();
     const target = asAbsoluteWorkspaceUri(URI.file('Test note.md'));
     expectSameUri(target, window.activeTextEditor?.document.uri);
@@ -36,12 +36,12 @@ describe('create-note command', () => {
 
   it('gives precedence to the template over the text', async () => {
     const templateA = await createFile('Template A', [
-      '.foam',
+      '.loam',
       'templates',
       'template-for-create-note.md',
     ]);
     const target = getUriInWorkspace();
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.path,
       templatePath: templateA.uri.path,
       text: 'hello',
@@ -54,7 +54,7 @@ describe('create-note command', () => {
 
   it('focuses on the newly created note', async () => {
     const target = getUriInWorkspace();
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.path,
       text: 'hello',
     });
@@ -65,7 +65,7 @@ describe('create-note command', () => {
 
   it('supports variables', async () => {
     const target = getUriInWorkspace();
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.path,
       text: 'hello ${FOAM_TITLE}', // eslint-disable-line no-template-curly-in-string
       variables: { FOAM_TITLE: 'world' },
@@ -77,7 +77,7 @@ describe('create-note command', () => {
 
   it('supports date variables', async () => {
     const target = getUriInWorkspace();
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.path,
       text: 'hello ${FOAM_DATE_YEAR}', // eslint-disable-line no-template-curly-in-string
       date: '2021-10-01',
@@ -92,7 +92,7 @@ describe('create-note command', () => {
     const content = await readFile(target.uri);
     expect(content).toEqual('hello');
 
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.uri.path,
       text: 'test overwrite',
       onFileExists: 'overwrite',
@@ -103,7 +103,7 @@ describe('create-note command', () => {
     expectSameUri(window.activeTextEditor.document.uri, target.uri);
 
     await closeEditors();
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.uri.path,
       text: 'test open',
       onFileExists: 'open',
@@ -114,7 +114,7 @@ describe('create-note command', () => {
     expectSameUri(window.activeTextEditor.document.uri, target.uri);
 
     await closeEditors();
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.uri.path,
       text: 'test cancel',
       onFileExists: 'cancel',
@@ -125,7 +125,7 @@ describe('create-note command', () => {
       .spyOn(window, 'showInputBox')
       .mockImplementationOnce(jest.fn(() => Promise.resolve(undefined)));
     await closeEditors();
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.uri.path,
       text: 'test ask',
       onFileExists: 'ask',
@@ -144,7 +144,7 @@ describe('create-note command', () => {
     await showInEditor(base.uri);
 
     const target = getUriInWorkspace();
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.getBasename(),
       text: 'test resolving from root',
       onRelativeNotePath: 'resolve-from-root',
@@ -156,7 +156,7 @@ describe('create-note command', () => {
 
     await closeEditors();
     await showInEditor(base.uri);
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.getBasename(),
       text: 'test resolving from current dir',
       onRelativeNotePath: 'resolve-from-current-dir',
@@ -172,7 +172,7 @@ describe('create-note command', () => {
 
     await closeEditors();
     await showInEditor(base.uri);
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.getBasename(),
       text: 'test cancelling',
       onRelativeNotePath: 'cancel',
@@ -184,7 +184,7 @@ describe('create-note command', () => {
     const spy = jest
       .spyOn(window, 'showInputBox')
       .mockImplementationOnce(jest.fn(() => Promise.resolve(undefined)));
-    await commands.executeCommand('foam-vscode.create-note', {
+    await commands.executeCommand('loam-vscode.create-note', {
       notePath: target.getBasename(),
       text: 'test asking',
       onRelativeNotePath: 'ask',

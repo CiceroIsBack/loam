@@ -1,7 +1,7 @@
 import { NoteLinkDefinition, Resource } from '../model/note';
 import { Range } from '../model/range';
 import { createMarkdownReferences } from '../services/markdown-provider';
-import { FoamWorkspace } from '../model/workspace';
+import { LoamWorkspace } from '../model/workspace';
 import { TextEdit } from '../services/text-edit';
 import { Position } from '../model/position';
 
@@ -12,7 +12,7 @@ export const generateLinkReferences = async (
   note: Resource,
   text: string,
   eol: string,
-  workspace: FoamWorkspace,
+  workspace: LoamWorkspace,
   includeExtensions: boolean
 ): Promise<TextEdit | null> => {
   if (!note) {

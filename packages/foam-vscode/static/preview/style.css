@@ -1,18 +1,18 @@
-.foam-placeholder-link {
+.loam-placeholder-link {
   color: var(--vscode-editorWarning-foreground);
   cursor: default;
 }
 
-.foam-note-link,
-.foam-attachment-link {
+.loam-note-link,
+.loam-attachment-link {
   color: var(--vscode-textLink-foreground);
 }
 
-.foam-tag {
+.loam-tag {
   color: var(--vscode-editorLineNumber-foreground);
 }
 
-.foam-cyclic-link-warning {
+.loam-cyclic-link-warning {
   background-color: var(--vscode-editorError-background);
   color: var(--vscode-editorError-foreground);
 }

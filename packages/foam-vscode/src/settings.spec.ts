@@ -1,5 +1,5 @@
 import { getNotesExtensions } from './settings';
-import { withModifiedFoamConfiguration } from './test/test-utils-vscode';
+import { withModifiedLoamConfiguration } from './test/test-utils-vscode';
 
 describe('Default note settings', () => {
   it('should default to .md', async () => {
@@ -9,14 +9,14 @@ describe('Default note settings', () => {
   });
 
   it('should always include the default note extension in the list of notes extensions', async () => {
-    withModifiedFoamConfiguration(
+    withModifiedLoamConfiguration(
       'files.defaultNoteExtension',
       'mdxx',
       async () => {
         const { notesExtensions } = getNotesExtensions();
         expect(notesExtensions).toEqual(['.mdxx']);
 
-        withModifiedFoamConfiguration(
+        withModifiedLoamConfiguration(
           'files.notesExtensions',
           'md markdown',
           async () => {

@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { createMarkdownParser } from '../core/services/markdown-parser';
 import { MarkdownResourceProvider } from '../core/services/markdown-provider';
-import { FoamGraph } from '../core/model/graph';
-import { FoamWorkspace } from '../core/model/workspace';
+import { LoamGraph } from '../core/model/graph';
+import { LoamWorkspace } from '../core/model/workspace';
 import {
   cleanWorkspace,
   closeEditors,
@@ -23,7 +23,7 @@ const createWorkspace = () => {
   );
   const parser = createMarkdownParser();
   const resourceProvider = new MarkdownResourceProvider(dataStore, parser);
-  const workspace = new FoamWorkspace();
+  const workspace = new LoamWorkspace();
   workspace.registerProvider(resourceProvider);
   return workspace;
 };
@@ -55,7 +55,7 @@ describe('Hover provider', () => {
     it('should not return hover content for empty documents', async () => {
       const { uri, content } = await createFile('');
       const ws = createWorkspace().set(parser.parse(uri, content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
       const provider = new HoverProvider(hoverEnabled, ws, graph, parser);
 
       const doc = await vscode.workspace.openTextDocument(toVsCodeUri(uri));
@@ -72,7 +72,7 @@ describe('Hover provider', () => {
         'This is some content without links'
       );
       const ws = createWorkspace().set(parser.parse(uri, content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const provider = new HoverProvider(hoverEnabled, ws, graph, parser);
 
@@ -93,7 +93,7 @@ describe('Hover provider', () => {
       const noteA = parser.parse(fileA.uri, fileA.content);
       const noteB = parser.parse(fileB.uri, fileB.content);
       const ws = createWorkspace().set(noteA).set(noteB);
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const provider = new HoverProvider(hoverEnabled, ws, graph, parser);
       const { doc } = await showInEditor(noteA.uri);
@@ -111,7 +111,7 @@ describe('Hover provider', () => {
       );
       const noteA = parser.parse(fileA.uri, fileA.content);
       const ws = createWorkspace().set(noteA);
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const provider = new HoverProvider(hoverEnabled, ws, graph, parser);
       const { doc } = await showInEditor(noteA.uri);
@@ -132,7 +132,7 @@ describe('Hover provider', () => {
       const noteB = parser.parse(fileB.uri, fileB.content);
 
       const ws = createWorkspace().set(noteA).set(noteB);
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(noteA.uri);
       const pos = new vscode.Position(0, 22); // Set cursor position on the wikilink.
@@ -161,7 +161,7 @@ describe('Hover provider', () => {
       const noteB = parser.parse(fileB.uri, fileB.content);
 
       const ws = createWorkspace().set(noteA).set(noteB);
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(noteA.uri);
       const pos = new vscode.Position(0, 22); // Set cursor position on the wikilink.
@@ -185,7 +185,7 @@ describe('Hover provider', () => {
       const noteA = parser.parse(fileA.uri, fileA.content);
       const noteB = parser.parse(fileB.uri, fileB.content);
       const ws = createWorkspace().set(noteA).set(noteB);
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(noteA.uri);
       const pos = new vscode.Position(0, 22); // Set cursor position on the link.
@@ -213,7 +213,7 @@ The content of file B`);
       const noteA = parser.parse(fileA.uri, fileA.content);
       const noteB = parser.parse(fileB.uri, fileB.content);
       const ws = createWorkspace().set(noteA).set(noteB);
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(noteA.uri);
       const pos = new vscode.Position(0, 22); // Set cursor position on the link.
@@ -233,7 +233,7 @@ The content of file B`);
       const fileA = await createFile(`This is some [[wikilink]]`);
 
       const ws = createWorkspace().set(parser.parse(fileA.uri, fileA.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileA.uri);
       const pos = new vscode.Position(0, 20); // Set cursor position on the link.
@@ -245,7 +245,7 @@ The content of file B`);
       expect(result.contents[0]).toEqual(null);
       expect(result.contents[1]).toEqual(null);
       expect(getValue(result.contents[2])).toMatch(
-        "[Create note from template for 'wikilink'](command:foam-vscode.create-note?"
+        "[Create note from template for 'wikilink'](command:loam-vscode.create-note?"
       );
       ws.dispose();
       graph.dispose();
@@ -262,7 +262,7 @@ The content of file B`);
         .set(parser.parse(fileA.uri, fileA.content))
         .set(parser.parse(fileB.uri, fileB.content))
         .set(parser.parse(fileC.uri, fileC.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileB.uri);
       const pos = new vscode.Position(0, 29); // Set cursor position on the link.
@@ -291,7 +291,7 @@ The content of file B`);
         .set(parser.parse(fileA.uri, fileA.content))
         .set(parser.parse(fileB.uri, fileB.content))
         .set(parser.parse(fileC.uri, fileC.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileB.uri);
       const pos = new vscode.Position(0, 22); // Set cursor position on the link.
@@ -315,7 +315,7 @@ The content of file B`);
         .set(parser.parse(fileA.uri, fileA.content))
         .set(parser.parse(fileB.uri, fileB.content))
         .set(parser.parse(fileC.uri, fileC.content));
-      const graph = FoamGraph.fromWorkspace(ws);
+      const graph = LoamGraph.fromWorkspace(ws);
 
       const { doc } = await showInEditor(fileB.uri);
       const pos = new vscode.Position(0, 24); // Set cursor position on the link.
@@ -329,7 +329,7 @@ The content of file B`);
         /^Also referenced in 2 notes:/
       );
       expect(getValue(result.contents[2])).toMatch(
-        "[Create note from template for 'placeholder'](command:foam-vscode.create-note?"
+        "[Create note from template for 'placeholder'](command:loam-vscode.create-note?"
       );
       ws.dispose();
       graph.dispose();

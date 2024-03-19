@@ -19,7 +19,7 @@ async function main() {
       console.log('Running unit tests');
       await runUnit();
     } catch (err) {
-      console.log('Error occurred while running Foam unit tests:', err);
+      console.log('Error occurred while running Loam unit tests:', err);
       isSuccess = false;
     }
   }
@@ -51,14 +51,14 @@ async function main() {
         version: '1.70.0',
       });
     } catch (err) {
-      console.log('Error occurred while running Foam e2e tests:', err);
+      console.log('Error occurred while running Loam e2e tests:', err);
       isSuccess = false;
     }
   }
 
   if (!isSuccess) {
-    // throw new Error('Some Foam tests failed');
-    console.log('Some Foam tests failed');
+    // throw new Error('Some Loam tests failed');
+    console.log('Some Loam tests failed');
     process.exit(1);
   }
 }

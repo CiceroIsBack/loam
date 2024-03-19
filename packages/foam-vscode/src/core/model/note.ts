@@ -2,7 +2,7 @@ import { URI } from './uri';
 import { Range } from './range';
 
 export interface ResourceLink {
-  type: 'wikilink' | 'link';
+  type: 'wikilink' | 'link' | 'taglink';
   rawText: string;
   range: Range;
   isEmbed: boolean;

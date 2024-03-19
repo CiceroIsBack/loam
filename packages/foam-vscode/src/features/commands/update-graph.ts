@@ -1,16 +1,16 @@
 import { commands, ExtensionContext } from 'vscode';
-import { Foam } from '../../core/model/foam';
+import { Loam } from '../../core/model/loam';
 
-export const UPDATE_GRAPH_COMMAND_NAME = 'foam-vscode.update-graph';
+export const UPDATE_GRAPH_COMMAND_NAME = 'loam-vscode.update-graph';
 
 export default async function activate(
   context: ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
   context.subscriptions.push(
     commands.registerCommand(UPDATE_GRAPH_COMMAND_NAME, async () => {
-      const foam = await foamPromise;
-      return foam.graph.update();
+      const loam = await loamPromise;
+      return loam.graph.update();
     })
   );
 }

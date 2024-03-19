@@ -15,7 +15,7 @@ import { Logger } from '../core/utils/log';
  * We use the URI and a checksum of the markdown file to cache the resource.
  */
 export default class VsCodeBasedParserCache implements ParserCache {
-  static CACHE_NAME = 'foam-cache';
+  static CACHE_NAME = 'loam-cache';
   private _cache: LRU<string, ParserCacheEntry>;
 
   constructor(private context: ExtensionContext, size = 10000) {

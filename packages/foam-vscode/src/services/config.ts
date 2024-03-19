@@ -4,19 +4,19 @@ export interface ConfigurationMonitor<T> extends Disposable {
   (): T;
 }
 
-export const getFoamVsCodeConfig = <T>(key: string, defaultValue?: T): T =>
-  workspace.getConfiguration('foam').get(key, defaultValue);
+export const getLoamVsCodeConfig = <T>(key: string, defaultValue?: T): T =>
+  workspace.getConfiguration('loam').get(key, defaultValue);
 
-export const updateFoamVsCodeConfig = <T>(key: string, value: T) =>
-  workspace.getConfiguration().update('foam.' + key, value);
+export const updateLoamVsCodeConfig = <T>(key: string, value: T) =>
+  workspace.getConfiguration().update('loam.' + key, value);
 
-export const monitorFoamVsCodeConfig = <T>(
+export const monitorLoamVsCodeConfig = <T>(
   key: string
 ): ConfigurationMonitor<T> => {
-  let value: T = getFoamVsCodeConfig(key);
+  let value: T = getLoamVsCodeConfig(key);
   const listener = workspace.onDidChangeConfiguration(e => {
-    if (e.affectsConfiguration('foam.' + key)) {
-      value = getFoamVsCodeConfig(key);
+    if (e.affectsConfiguration('loam.' + key)) {
+      value = getLoamVsCodeConfig(key);
     }
   });
   const ret = () => {

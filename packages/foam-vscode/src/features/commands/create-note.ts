@@ -144,7 +144,7 @@ export async function createNote(args: CreateNoteArgs, foam: Foam) {
 }
 
 export const CREATE_NOTE_COMMAND = {
-  command: 'foam-vscode.create-note',
+  command: 'loam-vscode.create-note',
 
   /**
    * Creates a command descriptor to create a note from the given placeholder.

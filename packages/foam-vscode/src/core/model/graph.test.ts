@@ -1,5 +1,5 @@
 import { createTestNote, createTestWorkspace } from '../../test/test-utils';
-import { FoamGraph } from './graph';
+import { LoamGraph } from './graph';
 import { URI } from './uri';
 
 describe('Graph', () => {
@@ -23,7 +23,7 @@ describe('Graph', () => {
     const noteE = createTestNote({ uri: '/page e.md' });
 
     workspace.set(noteA).set(noteB).set(noteC).set(noteD).set(noteE);
-    const graph = FoamGraph.fromWorkspace(workspace);
+    const graph = LoamGraph.fromWorkspace(workspace);
 
     expect(graph.getBacklinks(noteB.uri).map(l => l.source)).toEqual([
       noteA.uri,
@@ -46,7 +46,7 @@ describe('Graph', () => {
     );
     ws.set(createTestNote({ uri: '/file.pdf' }));
 
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(
       graph
@@ -65,7 +65,7 @@ describe('Graph', () => {
       links: [{ to: noteA.uri.path }, { to: noteA.uri.path }],
     });
     const ws = createTestWorkspace().set(noteA).set(noteB);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
     expect(graph.getBacklinks(noteA.uri)).toEqual([
       {
         source: noteB.uri,
@@ -89,7 +89,7 @@ describe('Graph', () => {
       links: [{ to: noteA.uri.path }, { to: noteA.uri.path }],
     });
     const ws = createTestWorkspace().set(noteA).set(noteB);
-    const graph = FoamGraph.fromWorkspace(ws, true);
+    const graph = LoamGraph.fromWorkspace(ws, true);
 
     expect(graph.getBacklinks(noteA.uri).length).toEqual(2);
 
@@ -129,7 +129,7 @@ describe('Graph', () => {
           links: [{ slug: '../to/page-a.md' }],
         })
       );
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(
       graph
@@ -172,7 +172,7 @@ describe('Graph', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA).set(attachmentA).set(attachmentB);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getBacklinks(attachmentA.uri).map(l => l.source)).toEqual([
       noteA.uri,
@@ -194,7 +194,7 @@ describe('Graph', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA).set(attachmentA).set(attachmentABis);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([
       attachmentABis.uri,
@@ -214,7 +214,7 @@ describe('Graph', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA).set(attachmentABis).set(attachmentA);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([
       attachmentABis.uri,
@@ -230,7 +230,7 @@ describe('Placeholders', () => {
       links: [{ to: '../page-b.md' }, { to: '/path/to/page-c.md' }],
     });
     ws.set(noteA);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getAllConnections()[0]).toEqual({
       source: noteA.uri,
@@ -251,7 +251,7 @@ describe('Placeholders', () => {
       links: [{ slug: 'page-b' }],
     });
     ws.set(noteA);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getAllConnections()[0]).toEqual({
       source: noteA.uri,
@@ -277,7 +277,7 @@ describe('Placeholders', () => {
     ws.set(noteA).set(
       createTestNote({ uri: '/different/location/for/note-b.md' })
     );
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getAllConnections()[0]).toEqual({
       source: noteA.uri,
@@ -298,7 +298,7 @@ describe('Placeholders', () => {
       links: [{ slug: 'constructor' }],
     });
     ws.set(noteA);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(
       graph
@@ -324,7 +324,7 @@ describe('Regenerating graph after workspace changes', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA).set(noteB).set(noteC);
-    let graph = FoamGraph.fromWorkspace(ws);
+    let graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([noteB.uri]);
     expect(graph.getBacklinks(noteB.uri).map(l => l.source)).toEqual([
@@ -350,7 +350,7 @@ describe('Regenerating graph after workspace changes', () => {
     ]);
 
     // recompute the links
-    graph = FoamGraph.fromWorkspace(ws);
+    graph = LoamGraph.fromWorkspace(ws);
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([noteC.uri]);
     expect(graph.getBacklinks(noteB.uri).map(l => l.source)).toEqual([]);
     expect(
@@ -373,7 +373,7 @@ describe('Regenerating graph after workspace changes', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA).set(noteB);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([noteB.uri]);
     expect(graph.getBacklinks(noteB.uri).map(l => l.source)).toEqual([
@@ -383,7 +383,7 @@ describe('Regenerating graph after workspace changes', () => {
 
     // remove note-b
     ws.delete(noteB.uri);
-    const graph2 = FoamGraph.fromWorkspace(ws);
+    const graph2 = LoamGraph.fromWorkspace(ws);
 
     expect(() => ws.get(noteB.uri)).toThrow();
     expect(graph2.contains(URI.placeholder('page-b'))).toBeTruthy();
@@ -396,7 +396,7 @@ describe('Regenerating graph after workspace changes', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([
       URI.placeholder('page-b'),
@@ -409,7 +409,7 @@ describe('Regenerating graph after workspace changes', () => {
     });
 
     ws.set(noteB);
-    FoamGraph.fromWorkspace(ws);
+    LoamGraph.fromWorkspace(ws);
 
     expect(() => ws.get(URI.placeholder('page-b'))).toThrow();
     expect(ws.get(noteB.uri).type).toEqual('note');
@@ -425,7 +425,7 @@ describe('Regenerating graph after workspace changes', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA).set(noteB);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([noteB.uri]);
     expect(graph.getBacklinks(noteB.uri).map(l => l.source)).toEqual([
@@ -435,7 +435,7 @@ describe('Regenerating graph after workspace changes', () => {
 
     // remove note-b
     ws.delete(noteB.uri);
-    const graph2 = FoamGraph.fromWorkspace(ws);
+    const graph2 = LoamGraph.fromWorkspace(ws);
 
     expect(() => ws.get(noteB.uri)).toThrow();
     expect(
@@ -450,7 +450,7 @@ describe('Regenerating graph after workspace changes', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([
       URI.placeholder('/path/to/another/page-b.md'),
@@ -465,7 +465,7 @@ describe('Regenerating graph after workspace changes', () => {
     });
 
     ws.set(noteB);
-    FoamGraph.fromWorkspace(ws);
+    LoamGraph.fromWorkspace(ws);
 
     expect(() => ws.get(URI.placeholder('page-b'))).toThrow();
     expect(ws.get(noteB.uri).type).toEqual('note');
@@ -477,7 +477,7 @@ describe('Regenerating graph after workspace changes', () => {
       links: [{ to: '/path/to/another/page-b.md' }],
     });
     const ws = createTestWorkspace().set(noteA);
-    const graph = FoamGraph.fromWorkspace(ws);
+    const graph = LoamGraph.fromWorkspace(ws);
     expect(
       graph.contains(URI.placeholder('/path/to/another/page-b.md'))
     ).toBeTruthy();
@@ -488,7 +488,7 @@ describe('Regenerating graph after workspace changes', () => {
       links: [],
     });
     ws.set(noteABis);
-    const graph2 = FoamGraph.fromWorkspace(ws);
+    const graph2 = LoamGraph.fromWorkspace(ws);
 
     expect(
       graph2.contains(URI.placeholder('/path/to/another/page-b.md'))
@@ -511,7 +511,7 @@ describe('Updating graph on workspace state', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA).set(noteB).set(noteC);
-    const graph = FoamGraph.fromWorkspace(ws, true);
+    const graph = LoamGraph.fromWorkspace(ws, true);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([noteB.uri]);
     expect(graph.getBacklinks(noteB.uri).map(l => l.source)).toEqual([
@@ -550,7 +550,7 @@ describe('Updating graph on workspace state', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA).set(noteB);
-    const graph = FoamGraph.fromWorkspace(ws, true);
+    const graph = LoamGraph.fromWorkspace(ws, true);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([noteB.uri]);
     expect(graph.getBacklinks(noteB.uri).map(l => l.source)).toEqual([
@@ -573,7 +573,7 @@ describe('Updating graph on workspace state', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA);
-    const graph = FoamGraph.fromWorkspace(ws, true);
+    const graph = LoamGraph.fromWorkspace(ws, true);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([
       URI.placeholder('page-b'),
@@ -602,7 +602,7 @@ describe('Updating graph on workspace state', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA).set(noteB);
-    const graph = FoamGraph.fromWorkspace(ws, true);
+    const graph = LoamGraph.fromWorkspace(ws, true);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([noteB.uri]);
     expect(graph.getBacklinks(noteB.uri).map(l => l.source)).toEqual([
@@ -628,7 +628,7 @@ describe('Updating graph on workspace state', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA);
-    const graph = FoamGraph.fromWorkspace(ws, true);
+    const graph = LoamGraph.fromWorkspace(ws, true);
 
     expect(graph.getLinks(noteA.uri).map(l => l.target)).toEqual([
       URI.placeholder('/path/to/another/page-b.md'),
@@ -657,7 +657,7 @@ describe('Updating graph on workspace state', () => {
     });
     const ws = createTestWorkspace();
     ws.set(noteA);
-    const graph = FoamGraph.fromWorkspace(ws, true);
+    const graph = LoamGraph.fromWorkspace(ws, true);
     expect(
       graph.contains(URI.placeholder('/path/to/another/page-b.md'))
     ).toBeTruthy();

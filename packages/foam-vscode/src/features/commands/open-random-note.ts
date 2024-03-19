@@ -1,16 +1,16 @@
 import { ExtensionContext, commands, window } from 'vscode';
 import { focusNote } from '../../utils';
-import { Foam } from '../../core/model/foam';
+import { Loam } from '../../core/model/loam';
 
 export default async function activate(
   context: ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
   context.subscriptions.push(
-    commands.registerCommand('foam-vscode.open-random-note', async () => {
-      const foam = await foamPromise;
+    commands.registerCommand('loam-vscode.open-random-note', async () => {
+      const loam = await loamPromise;
       const currentFile = window.activeTextEditor?.document.uri.path;
-      const notes = foam.workspace.list().filter(r => r.uri.isMarkdown());
+      const notes = loam.workspace.list().filter(r => r.uri.isMarkdown());
       if (notes.length <= 1) {
         window.showInformationMessage(
           'Could not find another note to open. If you believe this is a bug, please file an issue.'

@@ -115,15 +115,15 @@ export const withModifiedConfiguration = async (key, value, fn: () => void) => {
 };
 
 /**
- * Runs a function with a modified Foam configuration and
+ * Runs a function with a modified Loam configuration and
  * restores the original configuration afterwards
  *
- * @param key the key of the Foam configuration to modify
+ * @param key the key of the Loam configuration to modify
  * @param value the value to set the configuration to
  * @param fn the function to execute
  */
-export const withModifiedFoamConfiguration = (key, value, fn: () => void) =>
-  withModifiedConfiguration(`foam.${key}`, value, fn);
+export const withModifiedLoamConfiguration = (key, value, fn: () => void) =>
+  withModifiedConfiguration(`loam.${key}`, value, fn);
 
 /**
  * Utility function to check if two URIs are the same.

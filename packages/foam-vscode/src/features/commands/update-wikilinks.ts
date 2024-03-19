@@ -12,8 +12,8 @@ import {
   Position,
 } from 'vscode';
 import { isMdEditor, mdDocSelector } from '../../utils';
-import { Foam } from '../../core/model/foam';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { Loam } from '../../core/model/loam';
+import { LoamWorkspace } from '../../core/model/workspace';
 import {
   LINK_REFERENCE_DEFINITION_FOOTER,
   LINK_REFERENCE_DEFINITION_HEADER,
@@ -27,39 +27,39 @@ import { IMatcher } from '../../core/services/datastore';
 
 export default async function activate(
   context: ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
 
   context.subscriptions.push(
-    commands.registerCommand('foam-vscode.update-wikilink-definitions', () => {
+    commands.registerCommand('loam-vscode.update-wikilink-definitions', () => {
       return updateWikilinkDefinitions(
-        foam.workspace,
-        foam.services.parser,
-        foam.services.matcher
+        loam.workspace,
+        loam.services.parser,
+        loam.services.matcher
       );
     }),
     workspace.onWillSaveTextDocument(e => {
       e.waitUntil(
         updateWikilinkDefinitions(
-          foam.workspace,
-          foam.services.parser,
-          foam.services.matcher
+          loam.workspace,
+          loam.services.parser,
+          loam.services.matcher
         )
       );
     }),
     languages.registerCodeLensProvider(
       mdDocSelector,
       new WikilinkReferenceCodeLensProvider(
-        foam.workspace,
-        foam.services.parser
+        loam.workspace,
+        loam.services.parser
       )
     )
   );
 }
 
 async function updateWikilinkDefinitions(
-  fWorkspace: FoamWorkspace,
+  fWorkspace: LoamWorkspace,
   fParser: ResourceParser,
   fMatcher: IMatcher
 ) {
@@ -134,7 +134,7 @@ function detectDocumentWikilinkDefinitions(text: string, eol: string) {
  */
 class WikilinkReferenceCodeLensProvider implements CodeLensProvider {
   constructor(
-    private fWorkspace: FoamWorkspace,
+    private fWorkspace: LoamWorkspace,
     private fParser: ResourceParser
   ) {}
 
@@ -165,7 +165,7 @@ class WikilinkReferenceCodeLensProvider implements CodeLensProvider {
     return [
       new CodeLens(range, {
         command:
-          update == null ? '' : 'foam-vscode.update-wikilink-definitions',
+          update == null ? '' : 'loam-vscode.update-wikilink-definitions',
         title: `Wikilink definitions (${status})`,
         arguments: [],
       }),

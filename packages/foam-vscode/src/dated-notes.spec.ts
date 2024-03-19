@@ -7,7 +7,7 @@ import {
   createFile,
   deleteFile,
   showInEditor,
-  withModifiedFoamConfiguration,
+  withModifiedLoamConfiguration,
 } from './test/test-utils-vscode';
 import { fromVsCodeUri } from './utils/vsc-utils';
 
@@ -25,7 +25,7 @@ describe('getDailyNotePath', () => {
       workspace.workspaceFolders[0].uri
     ).joinPath(config, `${isoDate}.md`);
 
-    await withModifiedFoamConfiguration('openDailyNote.directory', config, () =>
+    await withModifiedLoamConfiguration('openDailyNote.directory', config, () =>
       expect(getDailyNotePath(date).toFsPath()).toEqual(expectedPath.toFsPath())
     );
   });
@@ -38,7 +38,7 @@ describe('getDailyNotePath', () => {
       ? `${config}\\${isoDate}.md`
       : `${config}/${isoDate}.md`;
 
-    await withModifiedFoamConfiguration('openDailyNote.directory', config, () =>
+    await withModifiedLoamConfiguration('openDailyNote.directory', config, () =>
       expect(getDailyNotePath(date).toFsPath()).toMatch(expectedPath)
     );
   });
@@ -51,7 +51,7 @@ describe('Daily note template', () => {
     const template = await createFile(
       // eslint-disable-next-line no-template-curly-in-string
       'hello ${FOAM_DATE_MONTH_NAME} ${FOAM_DATE_DATE} hello',
-      ['.foam', 'templates', 'daily-note.md']
+      ['.loam', 'templates', 'daily-note.md']
     );
 
     const uri = getDailyNotePath(targetDate);

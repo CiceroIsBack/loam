@@ -1,10 +1,10 @@
 import MarkdownIt from 'markdown-it';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { LoamWorkspace } from '../../core/model/workspace';
 import { createMarkdownParser } from '../../core/services/markdown-parser';
 import {
   createFile,
   deleteFile,
-  withModifiedFoamConfiguration,
+  withModifiedLoamConfiguration,
 } from '../../test/test-utils-vscode';
 import {
   default as markdownItWikilinkEmbed,
@@ -19,8 +19,8 @@ describe('Displaying included notes in preview', () => {
       'preview',
       'note-a.md',
     ]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
-    await withModifiedFoamConfiguration(
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'full-inline',
       () => {
@@ -45,9 +45,9 @@ describe('Displaying included notes in preview', () => {
       'preview',
       'note-a.md',
     ]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'full-card',
       () => {
@@ -79,10 +79,10 @@ This is the third section of note E
       ['note-e.md']
     );
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
     const md = markdownItWikilinkEmbed(MarkdownIt(), ws, parser);
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'full-inline',
       () => {
@@ -117,9 +117,9 @@ This is the third section of note E
       ['note-e-container.md']
     );
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'full-card',
       () => {
@@ -148,9 +148,9 @@ This is the first section of note E`,
       ['note-e.md']
     );
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'content-inline',
       () => {
@@ -182,9 +182,9 @@ This is the first section of note E
       ['note-e.md']
     );
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'content-card',
       () => {
@@ -217,9 +217,9 @@ This is the first subsection of note E
       ['note-e.md']
     );
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'content-inline',
       () => {
@@ -253,9 +253,9 @@ This is the first subsection of note E`,
       ['note-e.md']
     );
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'content-inline',
       () => {
@@ -291,10 +291,10 @@ This is the third section of note E
       ['note-e.md']
     );
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
     const md = markdownItWikilinkEmbed(MarkdownIt(), ws, parser);
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'full-inline',
       () => {
@@ -331,10 +331,10 @@ This is the second section of note E
       ['note-e.md']
     );
     const parser = createMarkdownParser([]);
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
     const md = markdownItWikilinkEmbed(MarkdownIt(), ws, parser);
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'full-inline',
       () => {
@@ -355,7 +355,7 @@ content-card![[note-e#Section 2]]`);
   it('should fallback to the bare text when the note is not found', () => {
     const md = markdownItWikilinkEmbed(
       MarkdownIt(),
-      new FoamWorkspace(),
+      new LoamWorkspace(),
       parser
     );
 
@@ -370,9 +370,9 @@ content-card![[note-e#Section 2]]`);
       ['note.md']
     );
 
-    const ws = new FoamWorkspace().set(parser.parse(note.uri, note.content));
+    const ws = new LoamWorkspace().set(parser.parse(note.uri, note.content));
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'full-inline',
       () => {
@@ -394,11 +394,11 @@ content-card![[note-e#Section 2]]`);
     const noteBText = 'This is the text of note B which includes ![[note-a]]';
     const noteB = await createFile(noteBText, ['preview', 'note-b.md']);
 
-    const ws = new FoamWorkspace()
+    const ws = new LoamWorkspace()
       .set(parser.parse(noteA.uri, noteA.content))
       .set(parser.parse(noteB.uri, noteB.content));
 
-    await withModifiedFoamConfiguration(
+    await withModifiedLoamConfiguration(
       CONFIG_EMBED_NOTE_TYPE,
       'full-card',
       () => {

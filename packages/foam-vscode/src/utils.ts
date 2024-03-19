@@ -152,7 +152,7 @@ export function getContainsTooltip(titles: string[]): string {
  * note content casted as string or returns a simple string
  * MarkdownString is only available from 1.52.1 onwards
  * https://code.visualstudio.com/updates/v1_52#_markdown-tree-tooltip-api
- * @param note A Foam Note
+ * @param note A Loam Note
  */
 export function getNoteTooltip(content: string): string {
   const strippedContent = stripFrontMatter(stripImages(content));

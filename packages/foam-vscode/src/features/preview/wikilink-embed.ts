@@ -5,10 +5,10 @@ import { readFileSync } from 'fs';
 import { workspace as vsWorkspace } from 'vscode';
 import markdownItRegex from 'markdown-it-regex';
 import { isSome, isNone } from '../../utils';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { LoamWorkspace } from '../../core/model/workspace';
 import { Logger } from '../../core/utils/log';
 import { Resource, ResourceParser } from '../../core/model/note';
-import { getFoamVsCodeConfig } from '../../services/config';
+import { getLoamVsCodeConfig } from '../../services/config';
 import { fromVsCodeUri, toVsCodeUri } from '../../utils/vsc-utils';
 import { MarkdownLink } from '../../core/services/markdown-link';
 import { Position } from '../../core/model/position';
@@ -26,7 +26,7 @@ const refsStack: string[] = [];
 
 export const markdownItWikilinkEmbed = (
   md: markdownit,
-  workspace: FoamWorkspace,
+  workspace: LoamWorkspace,
   parser: ResourceParser
 ) => {
   return md.use(markdownItRegex, {
@@ -53,7 +53,7 @@ export const markdownItWikilinkEmbed = (
         }
 
         if (cyclicLinkDetected) {
-          return `<div class="foam-cyclic-link-warning">Cyclic link detected for wikilink: ${wikilink}</div>`;
+          return `<div class="loam-cyclic-link-warning">Cyclic link detected for wikilink: ${wikilink}</div>`;
         }
         let content = `Embed for [[${wikilink}]]`;
         let html: string;
@@ -112,7 +112,7 @@ Embed for attachments is not supported
 function withLinksRelativeToWorkspaceRoot(
   noteText: string,
   parser: ResourceParser,
-  workspace: FoamWorkspace
+  workspace: LoamWorkspace
 ) {
   const note = parser.parse(
     fromVsCodeUri(vsWorkspace.workspaceFolders[0].uri),
@@ -147,7 +147,7 @@ export function retrieveNoteConfig(explicitModifier: string | undefined): {
   noteScope: string;
   noteStyle: string;
 } {
-  let config = getFoamVsCodeConfig<string>(CONFIG_EMBED_NOTE_TYPE); // ex. full-inline
+  let config = getLoamVsCodeConfig<string>(CONFIG_EMBED_NOTE_TYPE); // ex. full-inline
   let [noteScope, noteStyle] = config.split('-');
 
   // an explicit modifier will always override corresponding user setting
@@ -169,13 +169,13 @@ export function retrieveNoteConfig(explicitModifier: string | undefined): {
 export type EmbedNoteExtractor = (
   note: Resource,
   parser: ResourceParser,
-  workspace: FoamWorkspace
+  workspace: LoamWorkspace
 ) => string;
 
 function fullExtractor(
   note: Resource,
   parser: ResourceParser,
-  workspace: FoamWorkspace
+  workspace: LoamWorkspace
 ): string {
   let noteText = readFileSync(note.uri.toFsPath()).toString();
   const section = Resource.findSection(note, note.uri.fragment);
@@ -192,7 +192,7 @@ function fullExtractor(
 function contentExtractor(
   note: Resource,
   parser: ResourceParser,
-  workspace: FoamWorkspace
+  workspace: LoamWorkspace
 ): string {
   let noteText = readFileSync(note.uri.toFsPath()).toString();
   let section = Resource.findSection(note, note.uri.fragment);

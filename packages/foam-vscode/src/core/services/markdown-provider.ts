@@ -7,7 +7,7 @@ import {
 import { isNone, isSome } from '../utils';
 import { Logger } from '../utils/log';
 import { URI } from '../model/uri';
-import { FoamWorkspace } from '../model/workspace';
+import { LoamWorkspace } from '../model/workspace';
 import { IDisposable } from '../common/lifecycle';
 import { ResourceProvider } from '../model/provider';
 import { MarkdownLink } from './markdown-link';
@@ -48,14 +48,43 @@ export class MarkdownResourceProvider implements ResourceProvider {
   }
 
   resolveLink(
-    workspace: FoamWorkspace,
+    workspace: LoamWorkspace,
     resource: Resource,
     link: ResourceLink
   ) {
     let targetUri: URI | undefined;
-    const { target, section } = MarkdownLink.analyzeLink(link);
+    let { target, section } = MarkdownLink.analyzeLink(link);
     switch (link.type) {
       case 'wikilink': {
+        let definitionUri = undefined;
+        for (const def of resource.definitions) {
+          if (def.label === target) {
+            definitionUri = def.url;
+            break;
+          }
+        }
+        if (target.indexOf('/') !== -1) {
+          target = target.replace('/', '___');
+        }
+        if (isSome(definitionUri)) {
+          const definedUri = resource.uri.resolve(definitionUri);
+          targetUri =
+            workspace.find(definedUri, resource.uri)?.uri ??
+            URI.placeholder(definedUri.path);
+        } else {
+          targetUri =
+            target === ''
+              ? resource.uri
+              : workspace.find(target, resource.uri)?.uri ??
+                URI.placeholder(target);
+
+          if (section) {
+            targetUri = targetUri.withFragment(section);
+          }
+        }
+        break;
+      }
+      case 'taglink': {
         let definitionUri = undefined;
         for (const def of resource.definitions) {
           if (def.label === target) {
@@ -74,10 +103,6 @@ export class MarkdownResourceProvider implements ResourceProvider {
               ? resource.uri
               : workspace.find(target, resource.uri)?.uri ??
                 URI.placeholder(target);
-
-          if (section) {
-            targetUri = targetUri.withFragment(section);
-          }
         }
         break;
       }
@@ -107,7 +132,7 @@ export class MarkdownResourceProvider implements ResourceProvider {
 }
 
 export function createMarkdownReferences(
-  workspace: FoamWorkspace,
+  workspace: LoamWorkspace,
   source: Resource | URI,
   includeExtension: boolean
 ): NoteLinkDefinition[] {

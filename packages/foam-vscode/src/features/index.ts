@@ -1,4 +1,4 @@
-import { FoamFeature } from '../types';
+import { LoamFeature } from '../types';
 import * as commands from './commands';
 import * as panels from './panels';
 import dateSnippets from './date-snippets';
@@ -11,7 +11,7 @@ import navigationProviders from './navigation-provider';
 import wikilinkDiagnostics from './wikilink-diagnostics';
 import refactor from './refactor';
 
-export const features: FoamFeature[] = [
+export const features: LoamFeature[] = [
   ...Object.values(commands),
   ...Object.values(panels),
   refactor,

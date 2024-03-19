@@ -1,5 +1,5 @@
 import { ExtensionContext, commands } from 'vscode';
-import { getFoamVsCodeConfig } from '../../services/config';
+import { getLoamVsCodeConfig } from '../../services/config';
 import {
   createDailyNoteIfNotExists,
   openDailyNoteFor,
@@ -7,8 +7,8 @@ import {
 
 export default async function activate(context: ExtensionContext) {
   context.subscriptions.push(
-    commands.registerCommand('foam-vscode.open-dated-note', date => {
-      switch (getFoamVsCodeConfig('dateSnippets.afterCompletion')) {
+    commands.registerCommand('loam-vscode.open-dated-note', date => {
+      switch (getLoamVsCodeConfig('dateSnippets.afterCompletion')) {
         case 'navigateToNote':
           return openDailyNoteFor(date);
         case 'createNote':

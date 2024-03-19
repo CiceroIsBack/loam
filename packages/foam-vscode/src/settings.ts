@@ -1,7 +1,7 @@
 import { workspace, GlobPattern } from 'vscode';
 import { uniq } from 'lodash';
 import { LogLevel } from './core/utils/log';
-import { getFoamVsCodeConfig } from './services/config';
+import { getLoamVsCodeConfig } from './services/config';
 
 /**
  * Gets the notes extensions and default extension from the config.
@@ -9,7 +9,7 @@ import { getFoamVsCodeConfig } from './services/config';
  * @returns {notesExtensions: string[], defaultExtension: string}
  */
 export function getNotesExtensions() {
-  const notesExtensionsFromSetting = getFoamVsCodeConfig(
+  const notesExtensionsFromSetting = getLoamVsCodeConfig(
     'files.notesExtensions',
     ''
   )
@@ -18,7 +18,7 @@ export function getNotesExtensions() {
     .map(ext => '.' + ext.trim());
   const defaultExtension =
     '.' +
-    (getFoamVsCodeConfig('files.defaultNoteExtension', 'md') ?? 'md').trim();
+    (getLoamVsCodeConfig('files.defaultNoteExtension', 'md') ?? 'md').trim();
 
   // we make sure that the default extension is always included in the list of extensions
   const notesExtensions = uniq(
@@ -34,7 +34,7 @@ export function getNotesExtensions() {
  * @returns string[]
  */
 export function getAttachmentsExtensions() {
-  return getFoamVsCodeConfig('files.attachmentExtensions', '')
+  return getLoamVsCodeConfig('files.attachmentExtensions', '')
     .split(' ')
     .map(ext => '.' + ext.trim());
 }
@@ -44,43 +44,43 @@ export function getWikilinkDefinitionSetting():
   | 'withoutExtensions'
   | 'off' {
   return workspace
-    .getConfiguration('foam.edit')
+    .getConfiguration('loam.edit')
     .get('linkReferenceDefinitions', 'withoutExtensions');
 }
 
 /** Retrieve the list of file ignoring globs. */
 export function getIgnoredFilesSetting(): GlobPattern[] {
   return [
-    '**/.foam/**',
-    ...workspace.getConfiguration().get('foam.files.ignore', []),
+    '**/.loam/**',
+    ...workspace.getConfiguration().get('loam.files.ignore', []),
     ...Object.keys(workspace.getConfiguration().get('files.exclude', {})),
   ];
 }
 
 /** Retrieves the maximum length for a Graph node title. */
 export function getTitleMaxLength(): number {
-  return workspace.getConfiguration('foam.graph').get('titleMaxLength');
+  return workspace.getConfiguration('loam.graph').get('titleMaxLength');
 }
 
 /** Retrieve the graph's style object */
 export function getGraphStyle(): object {
-  return workspace.getConfiguration('foam.graph').get('style');
+  return workspace.getConfiguration('loam.graph').get('style');
 }
 
-export function getFoamLoggerLevel(): LogLevel {
-  return workspace.getConfiguration('foam.logging').get('level') ?? 'info';
+export function getLoamLoggerLevel(): LogLevel {
+  return workspace.getConfiguration('loam.logging').get('level') ?? 'info';
 }
 
 /** Retrieve the orphans configuration */
 export function getOrphansConfig(): GroupedResourcesConfig {
-  const orphansConfig = workspace.getConfiguration('foam.orphans');
+  const orphansConfig = workspace.getConfiguration('loam.orphans');
   const exclude: string[] = orphansConfig.get('exclude');
   return { exclude };
 }
 
 /** Retrieve the placeholders configuration */
 export function getPlaceholdersConfig(): GroupedResourcesConfig {
-  const placeholderCfg = workspace.getConfiguration('foam.placeholders');
+  const placeholderCfg = workspace.getConfiguration('loam.placeholders');
   const exclude: string[] = placeholderCfg.get('exclude');
   return { exclude };
 }

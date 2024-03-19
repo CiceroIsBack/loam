@@ -4,13 +4,13 @@ import { getNoteTooltip, mdDocSelector, isSome } from '../utils';
 import { fromVsCodeUri, toVsCodeRange } from '../utils/vsc-utils';
 import {
   ConfigurationMonitor,
-  monitorFoamVsCodeConfig,
+  monitorLoamVsCodeConfig,
 } from '../services/config';
 import { ResourceLink, ResourceParser } from '../core/model/note';
-import { Foam } from '../core/model/foam';
-import { FoamWorkspace } from '../core/model/workspace';
+import { Loam } from '../core/model/loam';
+import { LoamWorkspace } from '../core/model/workspace';
 import { Range } from '../core/model/range';
-import { FoamGraph } from '../core/model/graph';
+import { LoamGraph } from '../core/model/graph';
 import { OPEN_COMMAND } from './commands/open-resource';
 import { CREATE_NOTE_COMMAND } from './commands/create-note';
 import { commandAsURI } from '../utils/commands';
@@ -20,12 +20,12 @@ export const CONFIG_KEY = 'links.hover.enable';
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
   const isHoverEnabled: ConfigurationMonitor<boolean> =
-    monitorFoamVsCodeConfig(CONFIG_KEY);
+    monitorLoamVsCodeConfig(CONFIG_KEY);
 
-  const foam = await foamPromise;
+  const loam = await loamPromise;
 
   context.subscriptions.push(
     isHoverEnabled,
@@ -33,9 +33,9 @@ export default async function activate(
       mdDocSelector,
       new HoverProvider(
         isHoverEnabled,
-        foam.workspace,
-        foam.graph,
-        foam.services.parser
+        loam.workspace,
+        loam.graph,
+        loam.services.parser
       )
     )
   );
@@ -44,8 +44,8 @@ export default async function activate(
 export class HoverProvider implements vscode.HoverProvider {
   constructor(
     private isHoverEnabled: () => boolean,
-    private workspace: FoamWorkspace,
-    private graph: FoamGraph,
+    private workspace: LoamWorkspace,
+    private graph: LoamGraph,
     private parser: ResourceParser
   ) {}
 

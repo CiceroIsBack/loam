@@ -1,28 +1,28 @@
 /*global markdownit:readonly*/
 
 import * as vscode from 'vscode';
-import { Foam } from '../../core/model/foam';
-import { default as markdownItFoamTags } from './tag-highlight';
+import { Loam } from '../../core/model/loam';
+import { default as markdownItLoamTags } from './tag-highlight';
 import { default as markdownItWikilinkNavigation } from './wikilink-navigation';
 import { default as markdownItRemoveLinkReferences } from './remove-wikilink-references';
 import { default as markdownItWikilinkEmbed } from './wikilink-embed';
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
 
   return {
     extendMarkdownIt: (md: markdownit) => {
       return [
         markdownItWikilinkEmbed,
-        markdownItFoamTags,
+        markdownItLoamTags,
         markdownItWikilinkNavigation,
         markdownItRemoveLinkReferences,
       ].reduce(
         (acc, extension) =>
-          extension(acc, foam.workspace, foam.services.parser),
+          extension(acc, loam.workspace, loam.services.parser),
         md
       );
     },

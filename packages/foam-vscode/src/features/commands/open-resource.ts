@@ -1,24 +1,24 @@
 import * as vscode from 'vscode';
 import { URI } from '../../core/model/uri';
 import { toVsCodeUri } from '../../utils/vsc-utils';
-import { Foam } from '../../core/model/foam';
+import { Loam } from '../../core/model/loam';
 import {
   createFilter,
   FilterDescriptor,
 } from '../../core/services/resource-filter';
 import { CommandDescriptor } from '../../utils/commands';
-import { FoamWorkspace } from '../../core/model/workspace';
+import { LoamWorkspace } from '../../core/model/workspace';
 import { Resource } from '../../core/model/note';
 import { isSome, isNone } from '../../core/utils';
 
 export default async function activate(
   context: vscode.ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  const foam = await foamPromise;
+  const loam = await loamPromise;
   context.subscriptions.push(
     vscode.commands.registerCommand(OPEN_COMMAND.command, args => {
-      return openResource(foam.workspace, args);
+      return openResource(loam.workspace, args);
     })
   );
 }
@@ -38,8 +38,8 @@ export interface OpenResourceArgs {
 }
 
 export const OPEN_COMMAND = {
-  command: 'foam-vscode.open-resource',
-  title: 'Foam: Open Resource',
+  command: 'loam-vscode.open-resource',
+  title: 'Loam: Open Resource',
 
   forURI: (uri: URI): CommandDescriptor<OpenResourceArgs> => {
     return {
@@ -51,7 +51,7 @@ export const OPEN_COMMAND = {
   },
 };
 
-async function openResource(workspace: FoamWorkspace, args?: OpenResourceArgs) {
+async function openResource(workspace: LoamWorkspace, args?: OpenResourceArgs) {
   args = args ?? {};
 
   let item: { uri: URI } | null = null;
@@ -69,7 +69,7 @@ async function openResource(workspace: FoamWorkspace, args?: OpenResourceArgs) {
 
     if (candidates.length === 0) {
       vscode.window.showInformationMessage(
-        'Foam: No note matches given filters.'
+        'Loam: No note matches given filters.'
       );
       return;
     }

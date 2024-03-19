@@ -4,11 +4,11 @@ import { Resource } from '../../../core/model/note';
 import { toVsCodeUri } from '../../../utils/vsc-utils';
 import { Range } from '../../../core/model/range';
 import { URI } from '../../../core/model/uri';
-import { FoamWorkspace } from '../../../core/model/workspace';
+import { LoamWorkspace } from '../../../core/model/workspace';
 import { getNoteTooltip } from '../../../utils';
 import { isSome } from '../../../core/utils';
 import { getBlockFor } from '../../../core/services/markdown-parser';
-import { Connection, FoamGraph } from '../../../core/model/graph';
+import { Connection, LoamGraph } from '../../../core/model/graph';
 import { Logger } from '../../../core/utils/log';
 
 export class BaseTreeItem extends vscode.TreeItem {
@@ -45,7 +45,7 @@ export class UriTreeItem extends BaseTreeItem {
 export class ResourceTreeItem extends UriTreeItem {
   constructor(
     public readonly resource: Resource,
-    private readonly workspace: FoamWorkspace,
+    private readonly workspace: LoamWorkspace,
     options: {
       collapsibleState?: vscode.TreeItemCollapsibleState;
       parent?: vscode.TreeItem;
@@ -63,7 +63,7 @@ export class ResourceTreeItem extends UriTreeItem {
     };
     this.resourceUri = toVsCodeUri(resource.uri);
     this.iconPath = vscode.ThemeIcon.File;
-    this.contextValue = 'foam.resource';
+    this.contextValue = 'loam.resource';
   }
 
   async resolveTreeItem(): Promise<ResourceTreeItem> {
@@ -84,7 +84,7 @@ export class ResourceRangeTreeItem extends BaseTreeItem {
     public variant: string,
     public readonly resource: Resource,
     public readonly range: Range,
-    public readonly workspace: FoamWorkspace
+    public readonly workspace: LoamWorkspace
   ) {
     super(label, vscode.TreeItemCollapsibleState.None);
     this.command = {
@@ -125,7 +125,7 @@ export class ResourceRangeTreeItem extends BaseTreeItem {
     ),
   };
   static async createStandardItem(
-    workspace: FoamWorkspace,
+    workspace: LoamWorkspace,
     resource: Resource,
     range: Range,
     variant: 'backlink' | 'tag' | 'link'
@@ -155,7 +155,7 @@ export class ResourceRangeTreeItem extends BaseTreeItem {
 }
 
 export const groupRangesByResource = async (
-  workspace: FoamWorkspace,
+  workspace: LoamWorkspace,
   items:
     | ResourceRangeTreeItem[]
     | Promise<ResourceRangeTreeItem[]>
@@ -188,8 +188,8 @@ export const groupRangesByResource = async (
 };
 
 export function createBacklinkItemsForResource(
-  workspace: FoamWorkspace,
-  graph: FoamGraph,
+  workspace: LoamWorkspace,
+  graph: LoamGraph,
   uri: URI,
   variant: 'backlink' | 'link' = 'backlink'
 ) {
@@ -209,8 +209,8 @@ export function createBacklinkItemsForResource(
 }
 
 export function createConnectionItemsForResource(
-  workspace: FoamWorkspace,
-  graph: FoamGraph,
+  workspace: LoamWorkspace,
+  graph: LoamGraph,
   uri: URI,
   filter: (c: Connection) => boolean = () => true
 ) {

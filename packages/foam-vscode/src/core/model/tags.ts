@@ -1,10 +1,10 @@
-import { FoamWorkspace } from './workspace';
+import { LoamWorkspace } from './workspace';
 import { URI } from './uri';
 import { IDisposable } from '../common/lifecycle';
 import { debounce } from 'lodash';
 import { Emitter } from '../common/event';
 
-export class FoamTags implements IDisposable {
+export class LoamTags implements IDisposable {
   public readonly tags: Map<string, URI[]> = new Map();
 
   private onDidUpdateEmitter = new Emitter<void>();
@@ -15,7 +15,7 @@ export class FoamTags implements IDisposable {
    */
   private disposables: IDisposable[] = [];
 
-  constructor(private readonly workspace: FoamWorkspace) {}
+  constructor(private readonly workspace: LoamWorkspace) {}
 
   /**
    * Computes all tags in the workspace and keep them up-to-date
@@ -23,14 +23,14 @@ export class FoamTags implements IDisposable {
    * @param workspace the target workspace
    * @param keepMonitoring whether to recompute the links when the workspace changes
    * @param debounceFor how long to wait between change detection and tags update
-   * @returns the FoamTags
+   * @returns the LoamTags
    */
   public static fromWorkspace(
-    workspace: FoamWorkspace,
+    workspace: LoamWorkspace,
     keepMonitoring = false,
     debounceFor = 0
-  ): FoamTags {
-    const tags = new FoamTags(workspace);
+  ): LoamTags {
+    const tags = new LoamTags(workspace);
     tags.update();
 
     if (keepMonitoring) {
