@@ -664,9 +664,12 @@
     "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
     "vscode:prepublish": "yarn run esbuild-base -- --minify",
     "package-extension": "npx vsce package --yarn",
-    "install-extension": "code --install-extension ./loam-vscode-$npm_package_version.vsix",
-    "publish-extension-openvsx": "npx ovsx publish loam-vscode-$npm_package_version.vsix -p $OPENVSX_TOKEN",
-    "publish-extension-vscode": "npx vsce publish --packagePath loam-vscode-$npm_package_version.vsix",
+    "install-extension-bak": "code --install-extension ./loam-$npm_package_version.vsix",
+    "publish-extension-openvsx-bak": "npx ovsx publish loam-$npm_package_version.vsix -p $OPENVSX_TOKEN",
+    "publish-extension-vscode-bak": "npx vsce publish --packagePath loam-$npm_package_version.vsix",
+    "install-extension": "code --install-extension ./loam-%npm_package_version%.vsix",
+    "publish-extension-openvsx": "npx ovsx publish loam-%npm_package_version%.vsix -p %OPENVSX_TOKEN%",
+    "publish-extension-vscode": "npx vsce publish --packagePath loam-%npm_package_version%.vsix",
     "publish-extension": "yarn publish-extension-vscode && yarn publish-extension-openvsx"
   },
   "devDependencies": {

@@ -12,12 +12,12 @@
   "scripts": {
     "version-extension": "lerna version",
     "package-extension": "yarn workspace loam package-extension",
-    "install-extension": "yarn workspace loam-vscode install-extension",
-    "publish-extension": "yarn workspace loam-vscode publish-extension",
+    "install-extension": "yarn workspace loam install-extension",
+    "publish-extension": "yarn workspace loam publish-extension",
     "reset": "yarn && yarn clean && yarn build",
     "clean": "lerna run clean",
     "build": "lerna run build",
-    "test": "yarn workspace loam-vscode test --stream",
+    "test": "yarn workspace loam test --stream",
     "lint": "lerna run lint",
     "watch": "lerna run watch --concurrency 20 --stream"
   },
