@@ -8,7 +8,7 @@
     "target": "ES2019",
     "paths": {
       "loam-core": ["./packages/loam-core/src"],
-      "loam-vscode": ["./packages/loam-vscode/src"]
+      "loam-vscode": ["./packages/foam-vscode/src"]
     }
   }
 }

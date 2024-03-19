@@ -73,7 +73,9 @@ export async function activate(context: ExtensionContext) {
     );
 
     // Load the features
-    const resPromises = features.map(feature => feature(context, loamPromise));
+    const featuresPromises = features.map(feature =>
+      feature(context, loamPromise)
+    );
 
     const loam = await loamPromise;
     Logger.info(`Loaded ${loam.workspace.list().length} resources`);
@@ -102,7 +104,7 @@ export async function activate(context: ExtensionContext) {
       })
     );
 
-    const res = (await Promise.all(resPromises)).filter(r => r != null);
+    const feats = (await Promise.all(featuresPromises)).filter(r => r != null);
 
     let config = vscode.workspace.getConfiguration('files');
     config.update(
@@ -113,10 +115,11 @@ export async function activate(context: ExtensionContext) {
 
     return {
       extendMarkdownIt: (md: markdownit) => {
-        return res.reduce((acc: markdownit, r: any) => {
+        return feats.reduce((acc: markdownit, r: any) => {
           return r.extendMarkdownIt ? r.extendMarkdownIt(acc) : acc;
         }, md);
       },
+      loam,
     };
   } catch (e) {
     Logger.error('An error occurred while bootstrapping Loam', e);

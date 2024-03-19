@@ -4,6 +4,49 @@ All notable changes to the "foam-vscode" extension will be documented in this fi
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.25.11] - 2024-03-18
+
+Fixes and Improvements:
+
+- Actually fixed bug in graph computation (#1345)
+
+## [0.25.10] - 2024-03-18
+
+Fixes and Improvements:
+
+- Fixed bug in graph computation (#1345)
+
+## [0.25.9] - 2024-03-17
+
+Fixes and Improvements:
+
+- Improved note creation from placeholder (#1344)
+
+## [0.25.8] - 2024-02-21
+
+Fixes and Improvements:
+
+- Upgraded dataformat to improve support for daily note naming (#1326 - thanks @rcyeh)
+
+## [0.25.7] - 2024-01-16
+
+Fixes and Improvements:
+
+- Modifies url encoding to target only the filename and skip spaces (#1322 - thanks @MABruni)
+- Minor tweak to quick action menu with suggestions for section name
+
+## [0.25.6] - 2023-12-13
+
+Fixes and Improvements:
+
+- Fixed wikilink definition encoding (#1311 - thanks @MABruni)
+
+## [0.25.5] - 2023-11-30
+
+Fixes and Improvements:
+
+- Using note title in preview (#1309)
+
 ## [0.25.4] - 2023-09-19
 
 Fixes and Improvements:

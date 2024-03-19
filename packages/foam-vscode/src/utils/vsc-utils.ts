@@ -9,7 +9,7 @@ export const toVsCodePosition = (p: LoamPosition): Position =>
 export const toVsCodeRange = (r: LoamRange): Range =>
   new Range(r.start.line, r.start.character, r.end.line, r.end.character);
 
-export const toVsCodeUri = (u: LoamURI): Uri => Uri.parse(u.toString());
+export const toVsCodeUri = (u: LoamURI): Uri => Uri.from(u);
 
 export const fromVsCodeUri = (u: Uri): LoamURI => LoamURI.parse(u.toString());
 

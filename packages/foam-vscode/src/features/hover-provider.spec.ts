@@ -14,7 +14,7 @@ import { HoverProvider } from './hover-provider';
 import { readFileFromFs } from '../test/test-utils';
 import { FileDataStore } from '../test/test-datastore';
 
-// We can't use createTestWorkspace from /packages/loam-vscode/src/test/test-utils.ts
+// We can't use createTestWorkspace from /packages/foam-vscode/src/test/test-utils.ts
 // because we need a MarkdownResourceProvider with a real instance of FileDataStore.
 const createWorkspace = () => {
   const dataStore = new FileDataStore(
