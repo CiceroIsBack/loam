@@ -7,7 +7,7 @@
 //   - sort peeked files?
 //   - should the code-lens + command be moved into features/ folder?
 //   - sort backlink groups by title?
-//   - remove line numbers to prettify output? 
+//   - remove line numbers to prettify output?
 //   - also add some indication that not all relevant lines might have been shown
 //   - skip empty lines
 //   - focus should stay in original editor
@@ -22,8 +22,6 @@
 import * as vscode from 'vscode';
 import {
   CancellationToken,
-  CodeLens,
-  CodeLensProvider,
   Command,
   Disposable,
   DocumentLink,
@@ -45,15 +43,15 @@ import {
   window,
   workspace,
 } from 'vscode';
-import { Foam } from '../core/model/foam';
-import { Connection, FoamGraph } from '../core/model/graph';
+import { Loam } from '../core/model/loam';
+import { Connection, LoamGraph } from '../core/model/graph';
 import { fromVsCodeUri, toVsCodeUri } from '../utils/vsc-utils';
 import { mdDocSelector } from '../utils';
 import { URI } from '../core/model/uri';
-import { FoamWorkspace } from '../core/model/workspace';
+import { LoamWorkspace } from '../core/model/workspace';
 
-export const PEEK_BACKLINKS_SCHEME = 'foam-peek-backlinks';
-const PEEK_BACKLINKS_COMMAND = 'foam-vscode.peek-backlinks.show';
+export const PEEK_BACKLINKS_SCHEME = 'loam-peek-backlinks';
+const PEEK_BACKLINKS_COMMAND = 'loam-vscode.peek-backlinks.show';
 const CONTEXT_LINE_COUNT = 3;
 const PEEK_BACKLINKS_FILE_NAME = 'backlinks.md';
 
@@ -68,10 +66,10 @@ interface LinkedDocDetails {
 
 export default async function activate(
   context: ExtensionContext,
-  foamPromise: Promise<Foam>
+  loamPromise: Promise<Loam>
 ) {
-  // wait for foam to become ready
-  const foam = await foamPromise;
+  // wait for loam to become ready
+  const loam = await loamPromise;
 
   // create and register command that
   // - crafts an uri with the scheme PEEK_BACKLINKS_SCHEME
@@ -86,7 +84,10 @@ export default async function activate(
     _currentWikiDoc = editor.document.uri;
 
     const document = await workspace.openTextDocument(uri);
-    window.showTextDocument(document, editor.viewColumn! + 1);
+    window.showTextDocument(document, {
+      viewColumn: editor.viewColumn! + 1,
+      preview: true,
+    });
   };
 
   const commandRegistration = commands.registerTextEditorCommand(
@@ -95,12 +96,12 @@ export default async function activate(
   );
 
   // instantiate and register providers for the peek backlinks feature
-  // - code lens provider: for quick access to the peek backlinks feature
+  // - code lens provider: for quick access to the peek backlinks feature (REMOVED)
   // - document content provider: compiles the content of the peeked backlinks
-  const provider = new PeekBacklinks(foam.workspace, foam.graph);
+  const provider = new PeekBacklinks(loam.workspace, loam.graph);
 
   const providerRegistrations = Disposable.from(
-    languages.registerCodeLensProvider(mdDocSelector, provider),
+    // languages.registerCodeLensProvider(mdDocSelector, provider),
     workspace.registerTextDocumentContentProvider(
       PEEK_BACKLINKS_SCHEME,
       provider
@@ -132,7 +133,7 @@ const _backlinkDecorationType = window.createTextEditorDecorationType({
   },
   dark: {
     backgroundColor: '#02adc422',
-  }
+  },
 });
 
 const _linkedDocHeaderDecorationType = window.createTextEditorDecorationType({
@@ -142,16 +143,13 @@ const _linkedDocHeaderDecorationType = window.createTextEditorDecorationType({
   dark: {
     color: 'darkorange',
   },
-  isWholeLine: true
+  isWholeLine: true,
 });
 
 function initializeDecorations(context: ExtensionContext) {
-
   // define update decorations method for backlink name
   const updateBacklinkNameDecorations = (editor: TextEditor) => {
-
-    if (!_currentWikiDoc)
-      return;
+    if (!_currentWikiDoc) return;
 
     const backlinkName = fromVsCodeUri(_currentWikiDoc).getName().toLowerCase();
     const nameRegex = /\[{2}(.*?)]{2}/gm;
@@ -162,9 +160,7 @@ function initializeDecorations(context: ExtensionContext) {
     let ranges: vscode.Range[] = [];
 
     while ((match = nameRegex.exec(text))) {
-
-      if (match[1].toLocaleLowerCase() !== backlinkName)
-        continue;
+      if (match[1].toLocaleLowerCase() !== backlinkName) continue;
 
       const startPos = doc.positionAt(match.index);
       const endPos = doc.positionAt(match.index + match[0].length);
@@ -178,7 +174,6 @@ function initializeDecorations(context: ExtensionContext) {
 
   // define update decorations method for backlink name
   const updateLinkedDocHeaderDecorations = (editor: TextEditor) => {
-
     const headerRegex = /^.*\s\(.*.md\)$/gm;
     const doc = editor.document;
     const text = doc.getText();
@@ -187,7 +182,6 @@ function initializeDecorations(context: ExtensionContext) {
     let ranges: vscode.Range[] = [];
 
     while ((match = headerRegex.exec(text))) {
-
       const position = doc.positionAt(match.index);
       const range = doc.lineAt(position.line).range;
 
@@ -200,7 +194,6 @@ function initializeDecorations(context: ExtensionContext) {
   // set decorations when backlinks.md is opened for the first time
   window.onDidChangeActiveTextEditor(
     editor => {
-
       const doc = editor.document;
 
       if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
@@ -216,7 +209,6 @@ function initializeDecorations(context: ExtensionContext) {
   // update decorations when content of backlinks.md has changed
   workspace.onDidChangeTextDocument(
     e => {
-
       const doc = e.document;
 
       if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
@@ -226,7 +218,7 @@ function initializeDecorations(context: ExtensionContext) {
       );
 
       if (!editor) return;
-      
+
       updateBacklinkNameDecorations(editor);
       updateLinkedDocHeaderDecorations(editor);
     },
@@ -237,8 +229,8 @@ function initializeDecorations(context: ExtensionContext) {
 }
 
 export class PeekBacklinks
+  // CodeLensProvider,
   implements
-    CodeLensProvider,
     TextDocumentContentProvider,
     DocumentLinkProvider,
     FoldingRangeProvider
@@ -261,7 +253,7 @@ export class PeekBacklinks
     path: PEEK_BACKLINKS_FILE_NAME,
   });
 
-  constructor(private workspace: FoamWorkspace, private graph: FoamGraph) {
+  constructor(private workspace: LoamWorkspace, private graph: LoamGraph) {
     this.onDidChange = this._onDidChangeEmitter.event;
     this.onDidChangeFoldingRanges = this._onDidChangeFoldingRangesEmitter.event;
 
@@ -298,43 +290,6 @@ export class PeekBacklinks
     this._onDidChangeFoldingRangesEmitter.dispose();
   }
 
-  // CodeLensProvider
-  onDidChangeCodeLenses?: vscode.Event<void>;
-
-  provideCodeLenses(
-    document: TextDocument,
-    token: CancellationToken
-  ): ProviderResult<CodeLens[]> {
-    // prevent circular peeking
-    if (document.uri.scheme === PEEK_BACKLINKS_SCHEME) return;
-
-    // ensure there are any backlinks to peek
-    const foamUri = fromVsCodeUri(document.uri);
-    const backlinks = this.graph.getBacklinks(foamUri);
-
-    if (backlinks.length <= 0) return;
-
-    // create lens
-    const range = new vscode.Range(0, 0, 0, 0);
-
-    const command: Command = {
-      // alternative symbol: 🕸️
-      title: `🔍 Peek ${backlinks.length} backlink${
-        backlinks.length === 1 ? '' : 's'
-      }`,
-      command: PEEK_BACKLINKS_COMMAND,
-    };
-
-    return [new CodeLens(range, command)];
-  }
-
-  resolveCodeLens?(
-    codeLens: CodeLens,
-    token: CancellationToken
-  ): ProviderResult<CodeLens> {
-    return; // there are no lenses to resolve
-  }
-
   // TextDocumentContentProvider
   onDidChange?: vscode.Event<Uri>;
 
@@ -342,8 +297,8 @@ export class PeekBacklinks
     if (!_currentWikiDoc) return;
 
     const linkedDocDetailsMap = this.getOrCreateWikiDocEntry(/* reset */ true);
-    const foamUri = fromVsCodeUri(_currentWikiDoc);
-    const backlinks = this.graph.getBacklinks(foamUri);
+    const loamUri = fromVsCodeUri(_currentWikiDoc);
+    const backlinks = this.graph.getBacklinks(loamUri);
     const responseLines: string[] = [];
 
     // group backlinks
@@ -353,8 +308,7 @@ export class PeekBacklinks
       if (!current.has(backlink.source)) {
         connections = [];
         current.set(backlink.source, connections);
-      }
-      else {
+      } else {
         connections = current.get(backlink.source);
       }
 
@@ -363,19 +317,19 @@ export class PeekBacklinks
     }, new Map<URI, Connection[]>());
 
     // sort backlinks group by source name
-    const sortedBacklinksGroups = Array.from(groupedBacklinks.entries())
-      .sort((sourceA, sourceB) => {
+    const sortedBacklinksGroups = Array.from(groupedBacklinks.entries()).sort(
+      (sourceA, sourceB) => {
         const sourceNameA = sourceA[0].getName();
         const sourceNameB = sourceB[0].getName();
 
         return sourceNameA.localeCompare(sourceNameB);
-      });
+      }
+    );
 
     // loop over each backlinks group and build up text response
     let currentLine = 0;
 
     for (const backlinksGroup of sortedBacklinksGroups) {
-
       // get or create 'linkedDocDetails'
       let linkedDocDetails: LinkedDocDetails;
       let sourceDoc = backlinksGroup[0];
@@ -408,7 +362,7 @@ export class PeekBacklinks
         linkedDocDetailsMap.set(document, linkedDocDetails);
         responseLines.push(`${title} (${relativeUri})`);
         responseLines.push('');
-        currentLine+=2;
+        currentLine += 2;
       } else {
         linkedDocDetails = linkedDocDetailsMap.get(document);
       }
@@ -417,7 +371,6 @@ export class PeekBacklinks
       let backlinks = backlinksGroup[1];
 
       for (const backlink of backlinks) {
-
         // append wiki doc content to the text response
         const backlinkLine = backlink.link.range.start.line;
 
@@ -461,11 +414,16 @@ export class PeekBacklinks
     const documentLinks: DocumentLink[] = [];
 
     for (let [wikiDoc, linkedDocDetails] of linkedDocDetailsMap) {
-
-      // create linke only for the file path (and not for the title which comes before)
+      // create link only for the file path (and not for the title which comes before)
       const fullRange = document.lineAt(linkedDocDetails.startLine).range;
-      const actualStart = new Position(fullRange.start.line, linkedDocDetails.titleLength + 2);
-      const actualEnd = new Position(fullRange.end.line, fullRange.end.character - 1);
+      const actualStart = new Position(
+        fullRange.start.line,
+        linkedDocDetails.titleLength + 2
+      );
+      const actualEnd = new Position(
+        fullRange.end.line,
+        fullRange.end.character - 1
+      );
       const actualRange = new vscode.Range(actualStart, actualEnd);
       const documentLink = new DocumentLink(actualRange, wikiDoc.uri);
 
@@ -554,8 +512,7 @@ export class PeekBacklinks
     linkDocDetails: LinkedDocDetails,
     responseLines: string[]
   ) {
-    if (backlinkLine < linkDocDetails.minLine)
-      return 0;
+    if (backlinkLine < linkDocDetails.minLine) return 0;
 
     const text = doc.lineAt(backlinkLine).text;
     responseLines.push(text);

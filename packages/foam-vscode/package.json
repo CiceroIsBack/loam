@@ -111,6 +111,11 @@
     "menus": {
       "view/title": [
         {
+          "command": "loam-vscode.peek-backlinks.show",
+          "when": "view == loam-vscode.connections",
+          "group": "navigation"
+        },
+        {
           "command": "loam-vscode.views.connections.show:backlinks",
           "when": "view == loam-vscode.connections && loam-vscode.views.connections.show == 'all links'",
           "group": "navigation"
@@ -449,7 +454,8 @@
       },
       {
         "command": "loam-vscode.peek-backlinks.show",
-        "title": "Loam: Peek all backlinks"
+        "title": "Loam: View backlinks in context",
+        "icon": "$(symbol-keyword)"
       }
     ],
     "configuration": {
