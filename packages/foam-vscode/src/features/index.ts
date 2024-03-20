@@ -10,7 +10,7 @@ import linkDecorations from './document-decorator';
 import navigationProviders from './navigation-provider';
 import wikilinkDiagnostics from './wikilink-diagnostics';
 import refactor from './refactor';
-import peekBacklinks from './peek-backlinks';
+import viewBacklinksInContext from './view-backlinks-in-context';
 
 export const features: LoamFeature[] = [
   ...Object.values(commands),
@@ -24,5 +24,5 @@ export const features: LoamFeature[] = [
   preview,
   completionProvider,
   tagCompletionProvider,
-  peekBacklinks,
+  viewBacklinksInContext,
 ];

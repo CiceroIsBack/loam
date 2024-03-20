@@ -4,7 +4,7 @@
 //   - make context line count configurable
 //   - decorations theming
 //   - make output more markdown render-friendly
-//   - sort peeked files?
+//   - sort backlinks?
 //   - should the code-lens + command be moved into features/ folder?
 //   - sort backlink groups by title?
 //   - remove line numbers to prettify output?
@@ -50,10 +50,12 @@ import { mdDocSelector } from '../utils';
 import { URI } from '../core/model/uri';
 import { LoamWorkspace } from '../core/model/workspace';
 
-export const PEEK_BACKLINKS_SCHEME = 'loam-peek-backlinks';
-const PEEK_BACKLINKS_COMMAND = 'loam-vscode.peek-backlinks.show';
+export const VIEW_BACKLINKS_IN_CONTEXT_SCHEME =
+  'loam-view-backlinks-in-context';
+const VIEW_BACKLINKS_IN_CONTEXT_COMMAND =
+  'loam-vscode.view-backlinks-in-context.show';
 const CONTEXT_LINE_COUNT = 3;
-const PEEK_BACKLINKS_FILE_NAME = 'backlinks.md';
+const VIEW_BACKLINKS_IN_CONTEXT_FILE_NAME = 'backlinks.md';
 
 let _currentWikiDoc: Uri | undefined = undefined;
 
@@ -72,12 +74,12 @@ export default async function activate(
   const loam = await loamPromise;
 
   // create and register command that
-  // - crafts an uri with the scheme PEEK_BACKLINKS_SCHEME
+  // - crafts an uri with the scheme VIEW_BACKLINKS_IN_CONTEXT_SCHEME
   // - opens the virtual document
   // - shows it in the next editor
   const uri = Uri.from({
-    scheme: PEEK_BACKLINKS_SCHEME,
-    path: PEEK_BACKLINKS_FILE_NAME,
+    scheme: VIEW_BACKLINKS_IN_CONTEXT_SCHEME,
+    path: VIEW_BACKLINKS_IN_CONTEXT_FILE_NAME,
   });
 
   const commandHandler = async editor => {
@@ -91,27 +93,27 @@ export default async function activate(
   };
 
   const commandRegistration = commands.registerTextEditorCommand(
-    PEEK_BACKLINKS_COMMAND,
+    VIEW_BACKLINKS_IN_CONTEXT_COMMAND,
     commandHandler
   );
 
-  // instantiate and register providers for the peek backlinks feature
-  // - code lens provider: for quick access to the peek backlinks feature (REMOVED)
-  // - document content provider: compiles the content of the peeked backlinks
-  const provider = new PeekBacklinks(loam.workspace, loam.graph);
+  // instantiate and register providers for the backlinks in contextfeature
+  // - code lens provider: for quick access to the backlinks in context feature (REMOVED)
+  // - document content provider: compiles the content of the viewed backlinks
+  const provider = new viewBacklinksInContext(loam.workspace, loam.graph);
 
   const providerRegistrations = Disposable.from(
     // languages.registerCodeLensProvider(mdDocSelector, provider),
     workspace.registerTextDocumentContentProvider(
-      PEEK_BACKLINKS_SCHEME,
+      VIEW_BACKLINKS_IN_CONTEXT_SCHEME,
       provider
     ),
     languages.registerDocumentLinkProvider(
-      { scheme: PEEK_BACKLINKS_SCHEME },
+      { scheme: VIEW_BACKLINKS_IN_CONTEXT_SCHEME },
       provider
     ),
     languages.registerFoldingRangeProvider(
-      { scheme: PEEK_BACKLINKS_SCHEME },
+      { scheme: VIEW_BACKLINKS_IN_CONTEXT_SCHEME },
       provider
     )
   );
@@ -196,7 +198,7 @@ function initializeDecorations(context: ExtensionContext) {
     editor => {
       const doc = editor.document;
 
-      if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
+      if (doc.uri.scheme !== VIEW_BACKLINKS_IN_CONTEXT_SCHEME) return;
 
       updateBacklinkNameDecorations(editor);
       updateLinkedDocHeaderDecorations(editor);
@@ -211,7 +213,7 @@ function initializeDecorations(context: ExtensionContext) {
     e => {
       const doc = e.document;
 
-      if (doc.uri.scheme !== PEEK_BACKLINKS_SCHEME) return;
+      if (doc.uri.scheme !== VIEW_BACKLINKS_IN_CONTEXT_SCHEME) return;
 
       const editor = window.visibleTextEditors.find(
         current => current.document === doc
@@ -228,7 +230,7 @@ function initializeDecorations(context: ExtensionContext) {
   );
 }
 
-export class PeekBacklinks
+export class viewBacklinksInContext
   // CodeLensProvider,
   implements
     TextDocumentContentProvider,
@@ -248,18 +250,19 @@ export class PeekBacklinks
   private _onDidChangeFoldingRangesEmitter = new EventEmitter<void>();
   private _subscriptions: Disposable;
 
-  private _peekBacklinksUri = Uri.from({
-    scheme: PEEK_BACKLINKS_SCHEME,
-    path: PEEK_BACKLINKS_FILE_NAME,
+  private _backlinksInContextUri = Uri.from({
+    scheme: VIEW_BACKLINKS_IN_CONTEXT_SCHEME,
+    path: VIEW_BACKLINKS_IN_CONTEXT_FILE_NAME,
   });
 
   constructor(private workspace: LoamWorkspace, private graph: LoamGraph) {
     this.onDidChange = this._onDidChangeEmitter.event;
     this.onDidChangeFoldingRanges = this._onDidChangeFoldingRangesEmitter.event;
 
-    // ensure that the peek document content is updated when the user opens another wiki document
+    // ensure that the backlinks document content is updated when the user opens another wiki document
     this._subscriptions = window.onDidChangeActiveTextEditor(editor => {
-      if (editor.document.uri.scheme === PEEK_BACKLINKS_SCHEME) return;
+      if (editor.document.uri.scheme === VIEW_BACKLINKS_IN_CONTEXT_SCHEME)
+        return;
 
       // only fire when document is of supported scheme and language
       let isMatch = false;
@@ -279,7 +282,7 @@ export class PeekBacklinks
       _currentWikiDoc = editor.document.uri;
 
       // fire change events to trigger re-rendering
-      this._onDidChangeEmitter.fire(this._peekBacklinksUri);
+      this._onDidChangeEmitter.fire(this._backlinksInContextUri);
       this._onDidChangeFoldingRangesEmitter.fire();
     });
   }
@@ -374,21 +377,21 @@ export class PeekBacklinks
         // append wiki doc content to the text response
         const backlinkLine = backlink.link.range.start.line;
 
-        currentLine += PeekBacklinks.appendLeading(
+        currentLine += viewBacklinksInContext.appendLeading(
           document,
           backlinkLine,
           linkedDocDetails,
           responseLines
         );
 
-        currentLine += PeekBacklinks.appendMatch(
+        currentLine += viewBacklinksInContext.appendMatch(
           document,
           backlinkLine,
           linkedDocDetails,
           responseLines
         );
 
-        currentLine += PeekBacklinks.appendTrailing(
+        currentLine += viewBacklinksInContext.appendTrailing(
           document,
           backlinkLine,
           linkedDocDetails,
@@ -400,7 +403,7 @@ export class PeekBacklinks
     }
 
     if (responseLines.length === 0)
-      responseLines.push('There are no backlinks to peek.');
+      responseLines.push('There are no backlinks to view.');
 
     return responseLines.join('\n');
   }

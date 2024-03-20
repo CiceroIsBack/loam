@@ -13,12 +13,12 @@ import matter from 'gray-matter';
 import { toVsCodeUri } from './utils/vsc-utils';
 import { URI } from './core/model/uri';
 import { getEditorEOL } from './services/editor';
-import { PEEK_BACKLINKS_SCHEME } from './features/peek-backlinks';
+import { VIEW_BACKLINKS_IN_CONTEXT_SCHEME } from './features/view-backlinks-in-context';
 
 export const mdDocSelector = [
   { language: 'markdown', scheme: 'file' },
   { language: 'markdown', scheme: 'untitled' },
-  { language: 'markdown', scheme: PEEK_BACKLINKS_SCHEME },
+  { language: 'markdown', scheme: VIEW_BACKLINKS_IN_CONTEXT_SCHEME },
 ];
 
 export function isMdEditor(editor: TextEditor) {

@@ -111,7 +111,7 @@
     "menus": {
       "view/title": [
         {
-          "command": "loam-vscode.peek-backlinks.show",
+          "command": "loam-vscode.view-backlinks-in-context.show",
           "when": "view == loam-vscode.connections",
           "group": "navigation"
         },
@@ -453,7 +453,7 @@
         "title": "Loam: Move cursor after completion"
       },
       {
-        "command": "loam-vscode.peek-backlinks.show",
+        "command": "loam-vscode.view-backlinks-in-context.show",
         "title": "Loam: View backlinks in context",
         "icon": "$(symbol-keyword)"
       }
