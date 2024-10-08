@@ -111,6 +111,11 @@
     "menus": {
       "view/title": [
         {
+          "command": "loam-vscode.view-backlinks-in-context.show",
+          "when": "view == loam-vscode.connections",
+          "group": "navigation"
+        },
+        {
           "command": "loam-vscode.views.connections.show:backlinks",
           "when": "view == loam-vscode.connections && loam-vscode.views.connections.show == 'all links'",
           "group": "navigation"
@@ -446,6 +451,11 @@
       {
         "command": "loam-vscode.completion-move-cursor",
         "title": "Loam: Move cursor after completion"
+      },
+      {
+        "command": "loam-vscode.view-backlinks-in-context.show",
+        "title": "Loam: View backlinks in context",
+        "icon": "$(symbol-keyword)"
       }
     ],
     "configuration": {
